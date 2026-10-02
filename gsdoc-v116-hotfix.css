@@ -1,0 +1,9 @@
+/* GS Documentos v116 · correcciones visuales posteriores a v113 */
+.tech-menu{max-height:none!important;overflow:hidden!important;display:none}
+#techMulti.open .tech-menu{display:block!important}
+.tech-menu .multi-search{position:relative!important;z-index:3!important;margin:4px 4px 6px!important;width:calc(100% - 8px)!important}
+.tech-scroll-hint{margin:0 5px 6px!important;padding:5px 8px!important;border-radius:8px!important;background:#F6FAFD!important;color:#66809A!important;font:600 10.5px/1.2 Manrope,sans-serif!important;letter-spacing:.035em!important;text-align:right!important}
+.tech-options-scroll{display:block!important;width:100%!important;max-height:390px!important;min-height:190px!important;overflow-y:scroll!important;overflow-x:hidden!important;overscroll-behavior:contain!important;scrollbar-gutter:stable!important;padding-right:5px!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:auto!important;scrollbar-color:#4AAEF0 #EDF4F9!important}
+.tech-options-scroll::-webkit-scrollbar{width:12px!important}.tech-options-scroll::-webkit-scrollbar-track{background:#EDF4F9!important;border-radius:999px!important}.tech-options-scroll::-webkit-scrollbar-thumb{background:#4AAEF0!important;border:3px solid #EDF4F9!important;border-radius:999px!important}.tech-options-scroll::-webkit-scrollbar-thumb:hover{background:#258FD3!important}.tech-options-scroll .tech-available-count{position:sticky!important;top:0!important;z-index:2!important;margin-top:0!important}
+@media(max-width:720px){.tech-options-scroll{max-height:48vh!important;min-height:220px!important}}
+.dj-preview:not(.empty){border-left:4px solid var(--orange)!important;padding-left:14px!important}.dj-preview:not(.empty)::before{content:"DESCRIPCIÓN QUE IRÁ AL DJ";display:block;margin-bottom:6px;color:var(--blue);font:700 10.5px/1.2 Manrope,sans-serif;letter-spacing:.04em}
