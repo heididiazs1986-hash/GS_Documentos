@@ -1,0 +1,13 @@
+GS DOCUMENTOS - PAQUETE WEB LIMPIO
+
+Este paquete está preparado para reemplazar el contenido del repositorio web que despliega Vercel.
+
+INSTRUCCIONES:
+1. Limpia los archivos actuales del repositorio.
+2. Conserva la rama main.
+3. Sube EL CONTENIDO de este ZIP directamente a la raíz del repositorio.
+4. No subas una carpeta contenedora adicional.
+5. Vercel debe detectar el push a main y desplegar la aplicación web.
+
+Este paquete NO contiene APK, Android, Capacitor, workflows APK ni versiones antiguas.
+Incluye la versión web vigente con Field Utility Precision, TD automático, Todos los documentos, RETIE/EC, PWA y plantillas.
