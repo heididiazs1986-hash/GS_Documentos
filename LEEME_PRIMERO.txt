@@ -87,3 +87,12 @@ ACTUALIZACIÓN v112 · DIRECCIÓN Y MATRÍCULA
 - Se muestra debajo una vista previa con la cédula incorporada.
 - Al salir del campo, cambiar de campo o pulsar ENTER, queda la matrícula completa.
 - Si ya se escribió una matrícula completa con cédula, se respeta sin duplicar.
+
+
+ACTUALIZACIÓN v113 · SELECTOR DE USUARIOS TXT
+- El buscador simple fue reemplazado por una lista desplegable acorde a la estética de GS Documentos.
+- La lista se llena automáticamente con los nombres de usuarios contenidos en el TXT.
+- Las opciones se ordenan alfabéticamente.
+- Para distinguir homónimos, cada opción muestra NOMBRE · IDENTIFICACIÓN · SECTOR cuando esos datos existen.
+- Al seleccionar un usuario, sus datos se cargan inmediatamente al registro y continúan siendo editables.
+- Se conserva visualmente el usuario seleccionado al volver a renderizar el paso.

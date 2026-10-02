@@ -2,7 +2,7 @@
   "name": "GS Documentos APPLUS",
   "short_name": "GS Docs",
   "id": "/gs-documentos-applus",
-  "start_url": "/index.html?v=gsdoc-v112-address-matricula",
+  "start_url": "/index.html?v=gsdoc-v113-txt-user-picker",
   "scope": "/",
   "display": "standalone",
   "background_color": "#F9F9FA",

@@ -893,7 +893,36 @@
       for(const [key,aliases] of required){const i=head.findIndex(h=>aliases.map(canonHeader).includes(h));if(i<0)throw new Error('Falta la columna '+key);index[key]=i}
       return lines.slice(1).map((line,n)=>{const cols=splitLine(line,'|');if(cols.length!==10)return null;const r={_txt:n+1};for(const [k,i] of Object.entries(index))r[k]=cols[i]||'';r.nombres=upperCaseWords(r.nombres);r.sector=upperCaseWords(r.sector);r.direccion=normalizeAddress(r.direccion);r.contacto=normalizeContact(r.contacto);return r}).filter(Boolean).filter(r=>Object.entries(r).some(([k,v])=>k!=='_txt'&&String(v||'').trim()));
     }
-    function txtImportBox(){const base=loadTxtBase();return `<div class="txt-box"><div class="txt-row"><label class="btn secondary file-button">📥 Cargar TXT<input id="txtFile" type="file" accept=".txt,text/plain"></label><span class="txt-status">${base.length?`Base cargada · ${base.length} registros`:'TXT opcional'}</span>${base.length?'<button id="txtClear" type="button" class="btn ghost">Quitar base</button>':''}<button id="openRecords" type="button" class="btn ghost records-shortcut">📋 Registros</button></div>${base.length?`<div class="txt-search"><input id="txtSearch" placeholder="Buscar por nombre, identificación, contacto, dirección o sector"><div id="txtResults" class="txt-results"></div></div>`:''}</div>`}
+    function txtImportBox(){
+      const base=loadTxtBase();
+      const sorted=[...base].sort((a,b)=>String(a.nombres||'').localeCompare(String(b.nombres||''),'es',{sensitivity:'base'}));
+      const options=sorted.map(r=>{
+        const nombre=String(r.nombres||'SIN NOMBRE').toLocaleUpperCase('es-CO');
+        const ident=String(r.identificacion||'').trim();
+        const sector=String(r.sector||'').trim();
+        const extra=[ident,sector].filter(Boolean).join(' · ');
+        return `<option value="${escapeAttr(String(r._txt))}">${escapeText(nombre+(extra?' · '+extra:''))}</option>`;
+      }).join('');
+      return `<div class="txt-box">
+        <div class="txt-row">
+          <label class="btn secondary file-button">📥 Cargar TXT<input id="txtFile" type="file" accept=".txt,text/plain"></label>
+          <span class="txt-status">${base.length?`Base cargada · ${base.length} registros`:'TXT opcional'}</span>
+          ${base.length?'<button id="txtClear" type="button" class="btn ghost">Quitar base</button>':''}
+          <button id="openRecords" type="button" class="btn ghost records-shortcut">📋 Registros</button>
+        </div>
+        ${base.length?`<div class="txt-user-picker">
+          <label for="txtUserSelect">Seleccionar usuario del TXT</label>
+          <div class="txt-select-shell">
+            <span class="txt-select-icon">👤</span>
+            <select id="txtUserSelect" aria-label="Seleccionar usuario del TXT">
+              <option value="">Seleccione un usuario…</option>
+              ${options}
+            </select>
+          </div>
+          <div class="txt-picker-help">La lista se llena automáticamente con los usuarios del archivo cargado.</div>
+        </div>`:''}
+      </div>`;
+    }
     function multiFieldHTML(id,label,items,selected){
       selected=Array.isArray(selected)?selected:[];
       const shown=selected.length?escapeText(selected.join(' | ')):'Selecciona uno o varios...';
@@ -922,15 +951,45 @@
       const file=$('#txtFile');if(file)file.onchange=async()=>{const f=file.files?.[0];if(!f)return;try{const rows=parseTxt(await f.text());if(!rows.length)return toast('No se encontraron registros válidos en el TXT');localStorage.removeItem('GS_DOCS_LAST_EXPORT_V1');saveTxtBase(rows);toast(`Base cargada: ${rows.length} registros`);renderRegistration()}catch(e){console.error(e);toast(e.message||'No fue posible leer el TXT')}};
       const clear=$('#txtClear');if(clear)clear.onclick=()=>{const pending=records().filter(r=>r.estado_sync!=='SINCRONIZADO').length,lastExport=localStorage.getItem('GS_DOCS_LAST_EXPORT_V1');if(pending>0&&!lastExport)return toast('Antes sincroniza o exporta la relación de registros');localStorage.removeItem(txtKey);renderRegistration();toast('Base TXT retirada')};
       const open=$('#openRecords');if(open)open.onclick=()=>show('records');
-      const search=$('#txtSearch');if(search){const draw=()=>{const q=canonHeader(search.value),box=$('#txtResults');if(!box)return;if(q.length<2){box.innerHTML='';return}const rows=loadTxtBase().filter(r=>canonHeader([r.nombres,r.identificacion,r.contacto,r.direccion,r.localidad,r.sector].join(' ')).includes(q)).slice(0,10);box.innerHTML=rows.map(r=>`<button type="button" class="txt-result" data-txtidx="${r._txt}"><b>${escapeText(r.nombres||'Sin nombre')}</b><small>${escapeText(r.identificacion||'—')} · ${escapeText(r.contacto||'—')} · ${escapeText(r.direccion||'—')}</small></button>`).join('')||'<div class="tech-summary">Sin coincidencias</div>';box.querySelectorAll('[data-txtidx]').forEach(b=>b.onclick=()=>{const rec=loadTxtBase().find(x=>String(x._txt)===b.dataset.txtidx);if(rec)applyTxtRecord(rec)})};search.oninput=draw}
+      const picker=$('#txtUserSelect');
+      if(picker){
+        picker.onchange=()=>{
+          const idx=String(picker.value||'');
+          if(!idx)return;
+          const rec=loadTxtBase().find(x=>String(x._txt)===idx);
+          if(rec)applyTxtRecord(rec);
+        };
+      }
     }
-    function applyTxtRecord(rec){const allowed=['nombres','identificacion','contacto','direccion','localidad','sector','tipo_zona','latitud','longitud','precision'],keep={fecha_registro:state.registration.fecha_registro||todayISO()},imported={};for(const k of allowed){if(rec[k]!==''&&rec[k]!=null)imported[k]=rec[k]}const next={...state.registration,...imported,...keep};next.nombres=upperCaseWords(next.nombres);next.sector=upperCaseWords(next.sector);next.direccion=normalizeAddress(next.direccion);next.contacto=normalizeContact(next.contacto);if(!Array.isArray(next.elementos_externos))next.elementos_externos=[];if(!Array.isArray(next.estado_tecnico))next.estado_tecnico=[];state.registration=next;renderRegistration();save();toast('Datos del TXT cargados. Puedes editarlos')}
+    function applyTxtRecord(rec){
+      const allowed=['nombres','identificacion','contacto','direccion','localidad','sector','tipo_zona','latitud','longitud','precision'],
+            keep={fecha_registro:state.registration.fecha_registro||todayISO()},imported={};
+      for(const k of allowed){if(rec[k]!==''&&rec[k]!=null)imported[k]=rec[k]}
+      const next={...state.registration,...imported,...keep,_txt_selected:String(rec._txt??'')};
+      next.nombres=upperCaseWords(next.nombres);
+      next.sector=upperCaseWords(next.sector);
+      next.direccion=normalizeAddress(next.direccion);
+      next.contacto=normalizeContact(next.contacto);
+      if(!Array.isArray(next.elementos_externos))next.elementos_externos=[];
+      if(!Array.isArray(next.estado_tecnico))next.estado_tecnico=[];
+      state.registration=next;
+      renderRegistration();
+      const picker=document.getElementById('txtUserSelect');
+      if(picker)picker.value=String(rec._txt??'');
+      save();
+      toast('Usuario cargado desde el TXT. Puedes editar sus datos');
+    }
     function observationParts(text){return String(text||'').split(/\s*\|\s*|\n+/).map(x=>x.trim()).filter(Boolean)}
     function updateTechnicalObservation(oldStatuses,newStatuses){const oldSet=new Set(oldStatuses||[]);const manual=observationParts(state.registration.observaciones).filter(x=>!oldSet.has(x)&&!TECH_STATUS.includes(x));state.registration.observaciones=[...(newStatuses||[]),...manual].filter(Boolean).join(' | ')}
     function syncAvailableTechStatus(){const r=state.registration||{},old=[...(r.estado_tecnico||[])],allowed=availableTechStatus(r),next=old.filter(x=>allowed.includes(x));if(next.length!==old.length){r.estado_tecnico=next;updateTechnicalObservation(old,next)}}
     function toggleTech(v){const old=[...(state.registration.estado_tecnico||[])];let a=[...old];if(a.includes(v))a=a.filter(x=>x!==v);else{for(const pair of TECH_CONFLICTS){if(pair.includes(v)){const other=pair.find(x=>x!==v);a=a.filter(x=>x!==other)}}a.push(v)}state.registration.estado_tecnico=a;updateTechnicalObservation(old,a);const trigger=$('#techTrigger span');if(trigger)trigger.textContent=a.length?`${a.length} opcion${a.length===1?'':'es'} seleccionada${a.length===1?'':'s'}`:'SELECCIONAR NOVEDADES';document.querySelectorAll('[data-tech]').forEach(b=>b.classList.toggle('active',a.includes(b.dataset.tech)));const obs=$('#reg_observaciones');if(obs)obs.value=state.registration.observaciones||'';save()}
     function bindRegistration(){
-      bindTxt();const map={reg_fecha:'fecha_registro',reg_nombres:'nombres',reg_identificacion:'identificacion',reg_contacto:'contacto',reg_direccion:'direccion',reg_localidad:'localidad',reg_sector:'sector',reg_poblacion:'tipo_poblacion',reg_propiedad:'documento_propiedad',reg_material:'tipo_material',reg_plantas:'plantas',reg_observaciones:'observaciones',reg_lat:'latitud',reg_lon:'longitud'};
+      bindTxt();
+      const currentTxtPicker=document.getElementById('txtUserSelect');
+      if(currentTxtPicker&&state.registration?._txt_selected!=null){
+        currentTxtPicker.value=String(state.registration._txt_selected||'');
+      }
+      const map={reg_fecha:'fecha_registro',reg_nombres:'nombres',reg_identificacion:'identificacion',reg_contacto:'contacto',reg_direccion:'direccion',reg_localidad:'localidad',reg_sector:'sector',reg_poblacion:'tipo_poblacion',reg_propiedad:'documento_propiedad',reg_material:'tipo_material',reg_plantas:'plantas',reg_observaciones:'observaciones',reg_lat:'latitud',reg_lon:'longitud'};
       Object.entries(map).forEach(([id,key])=>{const el=$('#'+id);if(!el)return;const capture=(finalize=false)=>{let v=el.value;if(key==='identificacion')v=v.replace(/\D/g,'').slice(0,30);else if(key==='contacto')v=normalizeContact(v);else if(key==='plantas')v=String(v||'').replace(/\D/g,'').slice(0,2);else if(key==='direccion')v=finalize?gs77NormalizeAddress(v):addressTypingValue(v);else if(el.tagName!=='SELECT' && el.type!=='date' && el.type!=='number')v=finalize?upperCaseWords(v):upperCaseLive(v);state.registration[key]=v;if(el.value!==v)el.value=v;if(key==='contacto')updateContactCounter();save()};el.oninput=()=>capture(false);el.onchange=()=>capture(key==='direccion');if(!['identificacion','contacto','plantas','fecha_registro'].includes(key))el.onblur=()=>capture(true);});
       const municipio=$('#reg_municipio');if(municipio)municipio.onchange=()=>{state.registration.municipio=municipio.value;if(municipio.value==='Bogotá'){if(state.registration.localidad==='No aplica')state.registration.localidad='';}else if(municipio.value){state.registration.localidad='No aplica';}renderRegistration();save()};
       const ro=$('#reg_ro');if(ro)ro.oninput=()=>{ro.value=ro.value.replace(/\D/g,'').slice(0,10);state.registration.orden_ro=ro.value;updateROCounter();save()};
@@ -1089,7 +1148,7 @@
     function bind(){ const jct=$('#jornada_contrato');if(jct)jct.onchange=()=>{state.jornada.contrato=jct.value;save()}; const jn=$('#jornada_nombre');if(jn){jn.oninput=()=>{jn.value=upperCaseLive(jn.value);state.jornada.tecnico_nombre=jn.value;save()};jn.onblur=()=>{jn.value=upperCaseWords(jn.value);state.jornada.tecnico_nombre=jn.value;save()}};const jc=$('#jornada_cedula');if(jc)jc.oninput=()=>{jc.value=jc.value.replace(/\D/g,'').slice(0,20);state.jornada.tecnico_cedula=jc.value;save()};const jf=$('#jornadaFirma');if(jf)jf.onclick=()=>openSignatureModal('tecnico');const js=$('#jornadaStart');if(js)js.onclick=startJornada;const jp=$('#jornadaPrevious');if(jp)jp.onclick=()=>show('records'); $('#themeBtn').onclick=()=>{document.body.classList.toggle('dark');$('#themeBtn').textContent=document.body.classList.contains('dark')?'☀️':'🌙';save()}; const mb=$('#menuBtn'),mc=$('#menuClose'),bk=$('#menuBackdrop');if(mb)mb.onclick=()=>setMobileMenu(true);if(mc)mc.onclick=()=>setMobileMenu(false);if(bk)bk.onclick=()=>setMobileMenu(false); document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{if(b.classList.contains('locked'))return toast('Primero guarda el registro');show(b.dataset.go);setMobileMenu(false)}); $('#regPrev').onclick=()=>{state.regStep=Math.max(0,state.regStep-1);renderRegistration();save();window.scrollTo(0,0)}; $('#regNext').onclick=()=>{if(!validateStep(state.regStep))return;state.regStep=Math.min(REG_STEPS.length-1,state.regStep+1);renderRegistration();save();window.scrollTo(0,0)}; $('#saveRegister').onclick=saveRegistration; $('#skipRegister').onclick=()=>{state.currentRecord=null;show('home')}; $('#yesDocs').onclick=()=>{if((state.currentRecord||state.registration||{}).tratamiento_datos==='NO ACEPTO')return toast('El registro quedó guardado sin documentación por no aceptación del tratamiento de datos');show('home')}; const nr=$('#newRecordAfterSave');if(nr)nr.onclick=resetRegistrationKeepPlace; const sr=$('#savedRecords');if(sr)sr.onclick=()=>show('records'); const rb=$('#recordsBack');if(rb)rb.onclick=()=>show(state.currentRecord?'saved':'register'); const rn=$('#recordsNew');if(rn)rn.onclick=resetRegistrationKeepPlace; const cnc=$('#continueNoConsent');if(cnc)cnc.onclick=continueAfterPendingNoConsent; const snc=$('#saveNoConsentRecord');if(snc)snc.onclick=saveNoConsentRecord; const bnc=$('#backConsent');if(bnc)bnc.onclick=()=>{state.regStep=4;show('register');renderRegistration()}; $('#backRegister').onclick=()=>show('register'); $('#goForm').onclick=()=>show('form'); const formNext=$('#formNext');if(formNext)formNext.onclick=()=>{if(!validateRequired())return;if(!state.signatures?.solicitante)return toast('Falta la firma del usuario');if(!state.signatures?.tecnico)return toast('Falta la firma del técnico / gestor');show('supports')}; const clr=$('#clear');if(clr)clr.onclick=()=>{localStorage.removeItem(appKey);location.reload()}; const fc=$('#finishClean');if(fc)fc.onclick=()=>show('records'); $('#supportInput').onchange=e=>{state.supports=[...e.target.files];renderSupports()}; $('#genZip').onclick=generateZip;}
     function renderSupports(){const h=$('#supportPreview');h.innerHTML='';state.supports.forEach(f=>{const d=document.createElement('div'); if(f.type.startsWith('image/')){const img=document.createElement('img');img.src=URL.createObjectURL(f);d.appendChild(img)}else d.textContent=f.name;h.appendChild(d);});}
     bindSignatureModal(); load(); if(!state.registration)state.registration={};if(!state.jornada)state.jornada={active:false,contrato:'',tecnico_nombre:''};if(!state.techProfile)state.techProfile={nombre:state.jornada?.tecnico_nombre||'',cedula:'',profesion:'',consejo:'',matricula:''};if(!state.registration.municipio&&(state.jornada?.contrato||'')==='APPLUS')state.registration.municipio='Bogotá'; const roleParam=new URLSearchParams(location.search).get('role'); state.role=roleParam==='admin'?'admin':'tecnico'; if(!Number.isInteger(state.regStep))state.regStep=0; renderJornada();renderRegistration(); renderDocs(); bind(); renderForm(); renderSignatures(); if(state.role==='tecnico'&&!state.jornada.active)state.screen='jornada';else if(state.role==='tecnico'&&!state.currentRecord&&!['register','pendingNoConsent','saved','records'].includes(state.screen))state.screen='register'; show(state.screen||'register'); $('#themeBtn').textContent=document.body.classList.contains('dark')?'☀️':'🌙';
-    if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js?v=gsdoc-v112-address-matricula').catch(()=>{});}
+    if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js?v=gsdoc-v113-txt-user-picker').catch(()=>{});}
   
 
 /* Current GS Documentos logic and field workflow adjustments */

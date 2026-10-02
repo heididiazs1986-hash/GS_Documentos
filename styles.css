@@ -733,3 +733,69 @@ body[data-screen="jornada"] #app{
 body.dark #reg_direccion:not([readonly]),body.dark #cm_dir_radica:not([readonly]){
   background:#24282c!important;
 }
+
+
+/* v113 · selector de usuarios TXT */
+.txt-user-picker{
+  margin-top:12px;
+  padding-top:12px;
+  border-top:1px solid var(--line);
+}
+.txt-user-picker>label{
+  display:block;
+  margin:0 0 6px;
+  color:var(--blue);
+  font:600 13px/1.3 Manrope,sans-serif;
+}
+.txt-select-shell{
+  position:relative;
+  display:flex;
+  align-items:center;
+  border:1px solid #BFD7EA;
+  border-radius:14px;
+  background:#fff;
+  min-height:50px;
+  overflow:hidden;
+  transition:border-color .18s ease,box-shadow .18s ease;
+}
+.txt-select-shell:focus-within{
+  border-color:#5BA8E8;
+  box-shadow:0 0 0 3px rgba(91,168,232,.12);
+}
+.txt-select-icon{
+  flex:0 0 auto;
+  width:42px;
+  text-align:center;
+  font-size:17px;
+  opacity:.78;
+}
+#txtUserSelect{
+  width:100%;
+  min-height:48px;
+  border:0!important;
+  outline:0!important;
+  background:transparent!important;
+  color:var(--ink)!important;
+  padding:0 38px 0 0!important;
+  font:500 14px/1.3 Manrope,sans-serif!important;
+  cursor:pointer;
+  appearance:auto;
+}
+#txtUserSelect option{
+  color:#17324F;
+  background:#fff;
+}
+.txt-picker-help{
+  margin-top:5px;
+  color:var(--muted);
+  font:400 11.5px/1.35 Manrope,sans-serif;
+}
+body.dark .txt-select-shell{
+  background:#24282c;
+  border-color:#495864;
+}
+body.dark #txtUserSelect,
+body.dark #txtUserSelect option{
+  color:#f3f6f8!important;
+  background:#24282c!important;
+}
