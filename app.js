@@ -1035,13 +1035,13 @@
     function resetRegistrationKeepPlace(){const r=state.registration||{},techSig=state.signatures?.tecnico;state.registration={fecha_registro:todayISO(),municipio:r.municipio||((state.jornada?.contrato||'')==='APPLUS'?'Bogotá':''),localidad:r.municipio==='Bogotá'?(r.localidad||''):'No aplica',sector:r.sector||'',tipo_zona:r.tipo_zona||'Urbana',esquema_particular:'No',esquema_contrato:'Sí',requiere_redes:'No',requiere_muro:'No',garrawall:'No',arriostre:'No',requiere_interna:'No',requiere_externa:'No',elementos_externos:[],estado_tecnico:[],documentos_pendientes:[],condiciones_seguridad:[],tratamiento_datos:''};state.regStep=0;state.currentRecord=null;state.editingRecordId=null;state.form={};state.selected=[];state.signatures=techSig?{tecnico:techSig}:{};state.loads={};renderRegistration();renderDocs();save();show('register');toast('Listo para el siguiente registro');}
     function renderMasterSummary(){const h=$('#masterSummary');if(!h)return;const r=state.currentRecord;if(!r){h.innerHTML='';return;}h.innerHTML=`<div class="master-summary"><div class="ms-title">Datos tomados del registro</div><div class="ms-grid"><span><b>Nombre:</b> ${escapeText(r.nombres)}</span><span><b>RO:</b> ${escapeText(r.orden_ro||'—')}</span><span><b>Dirección:</b> ${escapeText(r.direccion)}</span><span><b>Municipio:</b> ${escapeText(r.municipio||'—')}</span><span><b>Localidad:</b> ${escapeText(r.municipio==='Bogotá'?(r.localidad||'—'):'No aplica')} / ${escapeText(r.sector)}</span><span><b>Zona:</b> ${escapeText(r.tipo_zona)}</span><span><b>GPS:</b> ${escapeText(r.latitud||'—')}, ${escapeText(r.longitud||'—')}</span></div></div>`;}
     function renderJornada(){if(!state.jornada)state.jornada={active:false,contrato:'',tecnico_nombre:'',tecnico_cedula:''};const ct=$('#jornada_contrato'),n=$('#jornada_nombre'),c=$('#jornada_cedula'),st=$('#jornadaFirmaStatus'),prev=$('#jornadaPrevious'),jf=$('#jornadaFirma');if(ct){ct.value=state.jornada.contrato||'';ct.disabled=!!state.jornada.active;}if(n)n.value=state.jornada.tecnico_nombre||'';if(c)c.value=state.jornada.tecnico_cedula||'';if(st){const sig=state.signatures?.tecnico;st.innerHTML=sig?`<img src="${sig}" alt="Vista previa firma del técnico"><small>Firma capturada · toque para revisar</small>`:'<span>Pendiente</span>';st.onclick=()=>openSignatureModal('tecnico')}if(jf)jf.textContent=state.signatures?.tecnico?'✍️ Repetir firma':'✍️ Capturar firma';if(prev)prev.classList.toggle('hidden-force',records().length===0)}
-    function startJornada(){const contrato=String($('#jornada_contrato')?.value||'').trim(),nombre=String($('#jornada_nombre')?.value||'').trim(),ced=String($('#jornada_cedula')?.value||'').replace(/\D/g,'');if(records().length){alert('Hay una jornada anterior pendiente de exportar. Debes cerrarla antes de iniciar una nueva.');show('records');return}if(!contrato){toast('Selecciona el contrato / aliado estratégico');return}if(!nombre||!ced){toast('Completa nombre y cédula del técnico');return}if(!state.signatures?.tecnico){toast('Falta la firma del técnico');return}state.jornada={active:true,contrato,tecnico_nombre:upperCaseWords(nombre),tecnico_cedula:ced,inicio:new Date().toISOString()};save();show('register');toast('Jornada iniciada')}
+    function startJornada(){const contrato=String($('#jornada_contrato')?.value||'').trim(),nombre=String($('#jornada_nombre')?.value||'').trim();if(records().length){alert('Hay una jornada anterior pendiente de exportar. Debes cerrarla antes de iniciar una nueva.');show('records');return}if(!contrato){toast('Selecciona el contrato / aliado estratégico');return}if(!nombre){toast('Completa el nombre del técnico / gestor');return}if(!state.signatures?.tecnico){toast('Falta la firma del técnico');return}state.jornada={...state.jornada,active:true,contrato,tecnico_nombre:upperCaseWords(nombre),inicio:new Date().toISOString()};save();show('register');toast('Jornada iniciada')}
 
     function setMobileMenu(open){const menu=$('#mobileMenu'),back=$('#menuBackdrop');if(!menu||!back)return;menu.classList.toggle('open',!!open);back.classList.toggle('open',!!open);document.body.classList.toggle('menu-open',!!open)}
     function bind(){ const jct=$('#jornada_contrato');if(jct)jct.onchange=()=>{state.jornada.contrato=jct.value;save()}; const jn=$('#jornada_nombre');if(jn){jn.oninput=()=>{jn.value=upperCaseLive(jn.value);state.jornada.tecnico_nombre=jn.value;save()};jn.onblur=()=>{jn.value=upperCaseWords(jn.value);state.jornada.tecnico_nombre=jn.value;save()}};const jc=$('#jornada_cedula');if(jc)jc.oninput=()=>{jc.value=jc.value.replace(/\D/g,'').slice(0,20);state.jornada.tecnico_cedula=jc.value;save()};const jf=$('#jornadaFirma');if(jf)jf.onclick=()=>openSignatureModal('tecnico');const js=$('#jornadaStart');if(js)js.onclick=startJornada;const jp=$('#jornadaPrevious');if(jp)jp.onclick=()=>show('records'); $('#themeBtn').onclick=()=>{document.body.classList.toggle('dark');$('#themeBtn').textContent=document.body.classList.contains('dark')?'☀️':'🌙';save()}; const mb=$('#menuBtn'),mc=$('#menuClose'),bk=$('#menuBackdrop');if(mb)mb.onclick=()=>setMobileMenu(true);if(mc)mc.onclick=()=>setMobileMenu(false);if(bk)bk.onclick=()=>setMobileMenu(false); document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{if(b.classList.contains('locked'))return toast('Primero guarda el registro');show(b.dataset.go);setMobileMenu(false)}); $('#regPrev').onclick=()=>{state.regStep=Math.max(0,state.regStep-1);renderRegistration();save();window.scrollTo(0,0)}; $('#regNext').onclick=()=>{if(!validateStep(state.regStep))return;state.regStep=Math.min(REG_STEPS.length-1,state.regStep+1);renderRegistration();save();window.scrollTo(0,0)}; $('#saveRegister').onclick=saveRegistration; $('#skipRegister').onclick=()=>{state.currentRecord=null;show('home')}; $('#yesDocs').onclick=()=>{if((state.currentRecord||state.registration||{}).tratamiento_datos==='NO ACEPTO')return toast('El registro quedó guardado sin documentación por no aceptación del tratamiento de datos');show('home')}; const nr=$('#newRecordAfterSave');if(nr)nr.onclick=resetRegistrationKeepPlace; const sr=$('#savedRecords');if(sr)sr.onclick=()=>show('records'); const rb=$('#recordsBack');if(rb)rb.onclick=()=>show(state.currentRecord?'saved':'register'); const rn=$('#recordsNew');if(rn)rn.onclick=resetRegistrationKeepPlace; const cnc=$('#continueNoConsent');if(cnc)cnc.onclick=continueAfterPendingNoConsent; const snc=$('#saveNoConsentRecord');if(snc)snc.onclick=saveNoConsentRecord; const bnc=$('#backConsent');if(bnc)bnc.onclick=()=>{state.regStep=4;show('register');renderRegistration()}; $('#backRegister').onclick=()=>show('register'); $('#goForm').onclick=()=>show('form'); const formNext=$('#formNext');if(formNext)formNext.onclick=()=>{if(!validateRequired())return;if(!state.signatures?.solicitante)return toast('Falta la firma del usuario');if(!state.signatures?.tecnico)return toast('Falta la firma del técnico / gestor');show('supports')}; const clr=$('#clear');if(clr)clr.onclick=()=>{localStorage.removeItem(appKey);location.reload()}; const fc=$('#finishClean');if(fc)fc.onclick=()=>show('records'); $('#supportInput').onchange=e=>{state.supports=[...e.target.files];renderSupports()}; $('#genZip').onclick=generateZip;}
     function renderSupports(){const h=$('#supportPreview');h.innerHTML='';state.supports.forEach(f=>{const d=document.createElement('div'); if(f.type.startsWith('image/')){const img=document.createElement('img');img.src=URL.createObjectURL(f);d.appendChild(img)}else d.textContent=f.name;h.appendChild(d);});}
     bindSignatureModal(); load(); if(!state.registration)state.registration={};if(!state.jornada)state.jornada={active:false,contrato:'',tecnico_nombre:''};if(!state.techProfile)state.techProfile={nombre:state.jornada?.tecnico_nombre||'',cedula:'',profesion:'',consejo:'',matricula:''};if(!state.registration.municipio&&(state.jornada?.contrato||'')==='APPLUS')state.registration.municipio='Bogotá'; const roleParam=new URLSearchParams(location.search).get('role'); state.role=roleParam==='admin'?'admin':'tecnico'; if(!Number.isInteger(state.regStep))state.regStep=0; renderJornada();renderRegistration(); renderDocs(); bind(); renderForm(); renderSignatures(); if(state.role==='tecnico'&&!state.jornada.active)state.screen='jornada';else if(state.role==='tecnico'&&!state.currentRecord&&!['register','pendingNoConsent','saved','records'].includes(state.screen))state.screen='register'; show(state.screen||'register'); $('#themeBtn').textContent=document.body.classList.contains('dark')?'☀️':'🌙';
-    if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js?v=gsdoc-v109-restored-ui').catch(()=>{});}
+    if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js?v=gsdoc-v110-generation-fix').catch(()=>{});}
   
 
 /* Current GS Documentos logic and field workflow adjustments */
@@ -1264,6 +1264,93 @@
     if(prof==='Técnico electricista')return 'CONTE';
     if(prof==='Tecnólogo electricista')return 'CONALTEL';
     return '';
+  }
+
+
+  function gs77SerialFromMatricula(value,cedula){
+    const raw=gs77RawMatricula(value);
+    const ced=String(cedula||'').replace(/\D/g,'').slice(0,20);
+    if(!raw || !ced)return raw;
+
+    // Si la matrícula contiene la cédula, extrae únicamente la serie.
+    // Admite CÉDULA-SERIE y SERIE-CÉDULA sin alterar una matrícula manual.
+    const parts=raw.split('-').filter(Boolean);
+    const idx=parts.findIndex(p=>String(p).replace(/\D/g,'')===ced);
+    if(idx>=0){
+      return parts.filter((_,i)=>i!==idx).join('-');
+    }
+
+    // Si la cédula aparece pegada por una matrícula antigua, retírala solo
+    // de los extremos; nunca toca una serie intermedia escrita por el técnico.
+    if(raw.startsWith(ced+'-'))return raw.slice(ced.length+1);
+    if(raw.endsWith('-'+ced))return raw.slice(0,-(ced.length+1));
+    return raw;
+  }
+
+  function gs78FormatMatricula(serial,cedula,profesion){
+    const serie=gs77RawMatricula(serial);
+    const ced=String(cedula||'').replace(/\D/g,'').slice(0,20);
+    const prof=String(profesion||'').trim();
+    if(!serie)return '';
+    if(!ced)return serie;
+
+    // Si lo escrito ya contiene la cédula, se respeta exactamente.
+    if(serie.replace(/\D/g,'').includes(ced))return serie;
+
+    const consejo=gs77CouncilForProfession(prof);
+    return consejo==='CONALTEL' ? `${serie}-${ced}` : `${ced}-${serie}`;
+  }
+
+  function gs77SyncMatricula({keepSerial=true}={}){
+    const id=document.getElementById('retie_const_identificacion');
+    const prof=document.getElementById('retie_prof_constructor');
+    const consejo=document.getElementById('retie_consejo');
+    const mat=document.getElementById('cm_retie_matricula');
+
+    state.form=state.form||{};
+    state.techProfile=state.techProfile||{};
+
+    const ced=String(
+      id?.value ||
+      state.form.retie_const_identificacion ||
+      state.currentRecord?.tecnico_cedula ||
+      state.techProfile.cedula ||
+      ''
+    ).replace(/\D/g,'').slice(0,20);
+
+    const profesion=String(
+      prof?.value ||
+      state.form.retie_prof_constructor ||
+      state.currentRecord?.tecnico_profesion ||
+      state.techProfile.profesion ||
+      ''
+    ).trim();
+
+    const council=gs77CouncilForProfession(profesion);
+    const current=String(mat?.value||state.form.cm_retie_matricula||state.techProfile.matricula||'');
+    const serial=keepSerial ? gs77SerialFromMatricula(current, state.techProfile.cedula||ced) : gs77RawMatricula(current);
+    const formatted=profesion ? gs78FormatMatricula(serial,ced,profesion) : gs77RawMatricula(current);
+
+    state.form.retie_const_identificacion=ced;
+    state.form.retie_prof_constructor=profesion;
+    state.form.retie_consejo=council;
+    state.form.cm_retie_matricula=formatted;
+
+    state.techProfile.nombre=gs77TechName();
+    state.techProfile.cedula=ced;
+    state.techProfile.profesion=profesion;
+    state.techProfile.consejo=council;
+    state.techProfile.matricula=formatted;
+
+    if(id)id.value=ced;
+    if(consejo){consejo.value=council;consejo.readOnly=true}
+    if(mat){
+      mat.disabled=!profesion;
+      mat.value=formatted;
+      mat.placeholder=!profesion?'SELECCIONE PRIMERO LA PROFESIÓN':(council==='CONALTEL'?'SERIE-CÉDULA':'CÉDULA-SERIE');
+    }
+    if(typeof save==='function')save();
+    return formatted;
   }
 
   function gs77FinalizeMatricula(){
@@ -1603,12 +1690,37 @@
     v.ar_alcaldia_pdf=v.ar_alcaldia_pdf||v.cm_mpio||rec.municipio||rec.localidad||'';
     v._orden_ro_e1=String(rec.orden_ro||rec.Orden_RO||rec.ro||v.e1_no_solicitud||'').trim();
     const techName=gs77TechName();
-    const retieId=String(document.getElementById('retie_const_identificacion')?.value||v.retie_const_identificacion||state.jornada?.tecnico_cedula||'').replace(/\\D/g,'');
-    let mat=String(document.getElementById('cm_retie_matricula')?.value||v.cm_retie_matricula||'').trim();
-    const prof=String(document.getElementById('retie_prof_constructor')?.value||v.retie_prof_constructor||state.form?.retie_prof_constructor||'').trim();
-    if(retieId){
-      const serial=gs77SerialFromMatricula(mat,retieId);
-      mat=gs78FormatMatricula(serial,retieId,prof);
+    state.techProfile=state.techProfile||{};
+    const retieId=String(
+      document.getElementById('retie_const_identificacion')?.value ||
+      v.retie_const_identificacion ||
+      state.currentRecord?.tecnico_cedula ||
+      state.techProfile.cedula ||
+      ''
+    ).replace(/\D/g,'').slice(0,20);
+    let mat=String(
+      document.getElementById('cm_retie_matricula')?.value ||
+      v.cm_retie_matricula ||
+      state.currentRecord?.tecnico_matricula ||
+      state.techProfile.matricula ||
+      ''
+    ).trim();
+    const prof=String(
+      document.getElementById('retie_prof_constructor')?.value ||
+      v.retie_prof_constructor ||
+      state.currentRecord?.tecnico_profesion ||
+      state.form?.retie_prof_constructor ||
+      state.techProfile.profesion ||
+      ''
+    ).trim();
+    if(retieId && mat){
+      // Si ya contiene la cédula se respeta; si no, aplica la regla
+      // CONTE = CÉDULA-SERIE / CONALTEL = SERIE-CÉDULA.
+      if(!gs77RawMatricula(mat).replace(/\D/g,'').includes(retieId)){
+        mat=gs78FormatMatricula(mat,retieId,prof);
+      }else{
+        mat=gs77RawMatricula(mat);
+      }
     }
     v.cm_retie_constructor=techName||v.cm_retie_constructor||'';
     v.retie_const_identificacion=retieId;
@@ -2180,7 +2292,7 @@
       }
     }
     if(id){
-      id.value=String(state.form?.retie_const_identificacion||state.jornada?.tecnico_cedula||id.value||'').replace(/\D/g,'').slice(0,20);
+      id.value=String(state.form?.retie_const_identificacion||state.currentRecord?.tecnico_cedula||state.techProfile?.cedula||id.value||'').replace(/\D/g,'').slice(0,20);
       if(id.dataset.gs77EcId!=='1'){
         id.dataset.gs77EcId='1';
         id.addEventListener('input',()=>{

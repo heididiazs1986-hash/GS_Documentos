@@ -54,3 +54,13 @@ ACTUALIZACIÓN v109 · RESTAURACIÓN VISUAL
 - Se mantiene la regla CONTE / CONALTEL para la matrícula.
 - Service Worker actualizado con estrategia network-first para la interfaz.
 - Se incluye vercel.json para servir el proyecto como aplicación estática desde la raíz.
+
+
+ACTUALIZACIÓN v110 · CORRECCIÓN DE GENERACIÓN
+- Corregido el error: gs77SerialFromMatricula is not defined.
+- Se restauraron las 3 funciones de matrícula requeridas por la generación:
+  gs77SerialFromMatricula, gs78FormatMatricula y gs77SyncMatricula.
+- La generación de E1, E6, AR, DJ, RETIE y EC ya no depende de una función inexistente.
+- Se corrigió la lectura de cédula técnica para usar el perfil RETIE/EC y no el Inicio de jornada.
+- Se validó que no queden funciones GS77/GS78 llamadas sin definición.
+- Se probaron las reglas CONTE y CONALTEL con matrículas simples y completas.

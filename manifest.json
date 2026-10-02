@@ -2,7 +2,7 @@
   "name": "GS Documentos APPLUS",
   "short_name": "GS Docs",
   "id": "/gs-documentos-applus",
-  "start_url": "/index.html?v=gsdoc-v109-restored-ui",
+  "start_url": "/index.html?v=gsdoc-v110-generation-fix",
   "scope": "/",
   "display": "standalone",
   "background_color": "#F9F9FA",
