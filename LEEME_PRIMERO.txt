@@ -37,20 +37,20 @@ ACTUALIZACIÓN v106:
 - Si mantiene NO ACEPTO, puede guardar solamente el registro de campo, sin firma ni documentos.
 - La selección de documentos pendientes se conserva aunque luego cambie a ACEPTO.
 
-
-ACTUALIZACIÓN v108:
-- La pantalla inicial ya NO solicita la cédula del técnico.
-- La cédula se diligencia únicamente en RETIE / EC y permanece visible y editable allí.
-- Orden RETIE: CÉDULA -> PROFESIÓN -> CONSEJO automático -> MATRÍCULA.
-- Si la cédula se corrige, la matrícula autogenerada se recompone con la cédula corregida.
-- Si el técnico escribe una matrícula completa que ya contiene la cédula actual, la app la respeta sin duplicarla.
+ACTUALIZACIÓN v107:
+- Corrige el fallo de arranque “Cannot set properties of null (setting innerHTML)”.
+- La causa era una función heredada que intentaba escribir en #signHost, contenedor eliminado al integrar las firmas dentro del flujo principal.
+- Ahora esa rutina es segura si el contenedor antiguo no existe.
 
 
-ACTUALIZACIÓN v108 · PERFIL TÉCNICO RETIE
-- La pantalla inicial solicita únicamente el nombre del técnico / gestor.
-- La cédula NO se solicita en la pantalla inicial.
-- En RETIE/EC se conserva el bloque: nombre, cédula, profesión, consejo, matrícula y firma del técnico.
-- Cédula, profesión, consejo, matrícula y firma se reutilizan automáticamente en los siguientes registros del mismo técnico.
-- Cada registro guarda su propia copia del nombre, cédula, profesión, consejo, matrícula y firma del técnico.
-- Si se cambia el nombre del técnico en la pantalla inicial, se limpian cédula, profesión, consejo, matrícula y firma para evitar mezclar credenciales entre técnicos.
-- La regla de matrícula se mantiene: CONTE = CÉDULA-SERIE; CONALTEL = SERIE-CÉDULA; si la matrícula ya contiene la cédula, no se recompone.
+ACTUALIZACIÓN v109 · RESTAURACIÓN VISUAL
+- Se restaura la aplicación sobre la versión visual completa (azul + naranja, navegación, tarjetas y campos).
+- app.js y styles.css vuelven a ser archivos completos: NO dependen del cargador comprimido de bundle para pintar la interfaz.
+- Se conserva el flujo Tratamiento de datos -> Documentos pendientes -> revisar autorización -> firma.
+- NO ACEPTO puede corregirse a ACEPTO antes del cierre.
+- La cédula del técnico se diligencia en RETIE / EC, no en Inicio de jornada.
+- Perfil RETIE/EC reutilizable durante la jornada: cédula, profesión, consejo y matrícula.
+- Cada registro conserva su propia copia de los datos del técnico.
+- Se mantiene la regla CONTE / CONALTEL para la matrícula.
+- Service Worker actualizado con estrategia network-first para la interfaz.
+- Se incluye vercel.json para servir el proyecto como aplicación estática desde la raíz.
