@@ -2,7 +2,7 @@
   "name": "GS Documentos APPLUS",
   "short_name": "GS Docs",
   "id": "/gs-documentos-applus",
-  "start_url": "/index.html?v=gsdoc-v106-consent-review",
+  "start_url": "/index.html?v=gsdoc-v108-tech-profile",
   "scope": "/",
   "display": "standalone",
   "background_color": "#F9F9FA",

@@ -36,3 +36,21 @@ ACTUALIZACIÓN v106:
 - Si cambia a ACEPTO, se habilita la firma y continúa la construcción normal de documentos.
 - Si mantiene NO ACEPTO, puede guardar solamente el registro de campo, sin firma ni documentos.
 - La selección de documentos pendientes se conserva aunque luego cambie a ACEPTO.
+
+
+ACTUALIZACIÓN v108:
+- La pantalla inicial ya NO solicita la cédula del técnico.
+- La cédula se diligencia únicamente en RETIE / EC y permanece visible y editable allí.
+- Orden RETIE: CÉDULA -> PROFESIÓN -> CONSEJO automático -> MATRÍCULA.
+- Si la cédula se corrige, la matrícula autogenerada se recompone con la cédula corregida.
+- Si el técnico escribe una matrícula completa que ya contiene la cédula actual, la app la respeta sin duplicarla.
+
+
+ACTUALIZACIÓN v108 · PERFIL TÉCNICO RETIE
+- La pantalla inicial solicita únicamente el nombre del técnico / gestor.
+- La cédula NO se solicita en la pantalla inicial.
+- En RETIE/EC se conserva el bloque: nombre, cédula, profesión, consejo, matrícula y firma del técnico.
+- Cédula, profesión, consejo, matrícula y firma se reutilizan automáticamente en los siguientes registros del mismo técnico.
+- Cada registro guarda su propia copia del nombre, cédula, profesión, consejo, matrícula y firma del técnico.
+- Si se cambia el nombre del técnico en la pantalla inicial, se limpian cédula, profesión, consejo, matrícula y firma para evitar mezclar credenciales entre técnicos.
+- La regla de matrícula se mantiene: CONTE = CÉDULA-SERIE; CONALTEL = SERIE-CÉDULA; si la matrícula ya contiene la cédula, no se recompone.
