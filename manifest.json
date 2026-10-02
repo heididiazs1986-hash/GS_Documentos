@@ -1,10 +1,12 @@
 {
   "name": "GS Documentos APPLUS",
   "short_name": "GS Docs",
-  "start_url": "/index.html?v=gsdoc-v81-field-utility",
+  "id": "/gs-documentos-applus",
+  "start_url": "/index.html?v=gsdoc-v106-consent-review",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#EEF4FA",
-  "theme_color": "#0A5BD7",
+  "background_color": "#F9F9FA",
+  "theme_color": "#FF6600",
   "icons": [
     {
       "src": "./gs-docs-icon-192.png",
@@ -16,7 +18,5 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ],
-  "id": "/gs-documentos-applus",
-  "scope": "/"
+  ]
 }

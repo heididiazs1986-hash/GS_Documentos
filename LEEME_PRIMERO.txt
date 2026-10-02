@@ -1,13 +1,38 @@
-GS DOCUMENTOS - PAQUETE WEB LIMPIO
+GS DOCUMENTOS · V104 FINAL
 
-Este paquete está preparado para reemplazar el contenido del repositorio web que despliega Vercel.
+Cambios incluidos:
+- Identidad visual basada en el mockup aprobado: azul corporativo + naranja.
+- Icono naranja de documento.
+- Pantalla inicial con ilustración del técnico en campo.
+- Nombre y cédula del técnico en la pantalla inicial.
+- Datos escritos guardados en MAYÚSCULAS, incluidas OBSERVACIONES.
+- Dirección: permite espacios durante la escritura y normaliza nomenclatura SOLO al terminar el campo.
+- RETIE: CÉDULA -> PROFESIÓN -> CONSEJO automático -> MATRÍCULA.
+- Matrícula bloqueada hasta escoger profesión.
+- CONTE: CÉDULA-SERIE; CONALTEL: SERIE-CÉDULA.
+- Si la matrícula ya contiene la cédula, la app NO reordena ni duplica.
+- Estado técnico y hallazgos de seguridad estilo AP Inventory: categorías, texto fino en mayúscula, sin checkbox y selección azul.
+- Cada hallazgo de Estado técnico muestra el componente al que pertenece mediante encabezados.
+- Pantalla obligatoria de tratamiento de datos ANTES de la firma del usuario.
+- Opciones ACEPTO / NO ACEPTO. NO ACEPTO bloquea firma y generación documental.
+- TD continúa siendo automático y obligatorio.
 
-INSTRUCCIONES:
-1. Limpia los archivos actuales del repositorio.
-2. Conserva la rama main.
-3. Sube EL CONTENIDO de este ZIP directamente a la raíz del repositorio.
-4. No subas una carpeta contenedora adicional.
-5. Vercel debe detectar el push a main y desplegar la aplicación web.
 
-Este paquete NO contiene APK, Android, Capacitor, workflows APK ni versiones antiguas.
-Incluye la versión web vigente con Field Utility Precision, TD automático, Todos los documentos, RETIE/EC, PWA y plantillas.
+ACTUALIZACIÓN v105:
+- Si el usuario selecciona NO ACEPTO en tratamiento de datos, el registro de campo NO se pierde.
+- Se abre automáticamente una pantalla de DOCUMENTOS PENDIENTES.
+- El técnico debe seleccionar al menos un documento pendiente.
+- No se solicita firma del usuario y no se habilita generación documental.
+- Al guardar, el registro queda disponible en Registros y en los exportes con:
+  Tratamiento de datos = NO ACEPTO
+  Documentos pendientes = selección realizada.
+
+
+ACTUALIZACIÓN v106:
+- NO ACEPTO ya no es una decisión irreversible dentro del flujo.
+- Al marcar NO ACEPTO se abre Documentos pendientes.
+- Después de seleccionar los pendientes, el botón principal vuelve a Tratamiento de datos.
+- Allí el usuario puede corregir la selección a ACEPTO.
+- Si cambia a ACEPTO, se habilita la firma y continúa la construcción normal de documentos.
+- Si mantiene NO ACEPTO, puede guardar solamente el registro de campo, sin firma ni documentos.
+- La selección de documentos pendientes se conserva aunque luego cambie a ACEPTO.
