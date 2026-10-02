@@ -64,3 +64,26 @@ ACTUALIZACIÓN v110 · CORRECCIÓN DE GENERACIÓN
 - Se corrigió la lectura de cédula técnica para usar el perfil RETIE/EC y no el Inicio de jornada.
 - Se validó que no queden funciones GS77/GS78 llamadas sin definición.
 - Se probaron las reglas CONTE y CONALTEL con matrículas simples y completas.
+
+
+ACTUALIZACIÓN v111 · HALLAZGOS RESTAURADOS
+- Se restauró el catálogo exacto de 19 hallazgos visibles acordados.
+- Se recuperaron las opciones conformes que se habían perdido:
+  acometida SÍ cumple, celda SÍ cumple, ducto SÍ cumple,
+  instalación externa completa SÍ cumple y SPT SÍ cumple.
+- Cuando se selecciona INSTALACIÓN COMPLETA se muestran los 19 hallazgos.
+- Se mantienen los encabezados por componente y el estilo AP Inventory:
+  sin checkbox, selección azul y categorías compactas.
+- NO APLICA y TODOS siguen siendo comodines internos, nunca opciones visibles.
+- Se conserva la corrección de generación documental de v110.
+
+
+ACTUALIZACIÓN v112 · DIRECCIÓN Y MATRÍCULA
+- Dirección siempre editable aunque venga del TXT.
+- Dirección también editable en Completar documentos y sincronizada al registro/exportes.
+- Normalización de dirección solo al salir del campo.
+- Matrícula: CONTE = CÉDULA-SERIE; CONALTEL = SERIE-CÉDULA.
+- Mientras se escribe la serie no se transforma el campo.
+- Se muestra debajo una vista previa con la cédula incorporada.
+- Al salir del campo, cambiar de campo o pulsar ENTER, queda la matrícula completa.
+- Si ya se escribió una matrícula completa con cédula, se respeta sin duplicar.

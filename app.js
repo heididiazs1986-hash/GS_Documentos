@@ -86,7 +86,7 @@
     const DJ_DESCRIPTION_MAP=Object.fromEntries(DJ_DESCRIPTIONS);
     const CURVES_STATUS='Fachada de predio con saliente, requiere curvas y uniones.';
     const FIELDS={
-      general:[['cm_nombre','Nombre o Razón Social *'],['cm_fecha_solicitud','Fecha de solicitud de servicio','date'],['cm_tipo_doc','Tipo de documento','select',['Cédula de ciudadanía','Cédula de extranjería','NIT','Pasaporte']],['cm_num_doc','Número de documento'],['cm_dir_radica','Dirección de quien radica'],['cm_localidad','Localidad del predio'],['cm_depto','Departamento','select',['Bogotá D.C.']],['cm_mpio','Municipio','select',['Bogotá']],['cm_celular','Celular'],['sol_correo','Correo electrónico','email'],['cm_nombre_proyecto','Nombre del proyecto','select',['CUNDINAMARCA AL 100','ENERGÍA SEGURA PARA TODOS','NORMALIZACIÓN DE INSTITUCIONES EDUCATIVAS']]],
+      general:[['cm_nombre','Nombre o Razón Social *'],['cm_fecha_solicitud','Fecha de solicitud de servicio','date'],['cm_tipo_doc','Tipo de documento','select',['Cédula de ciudadanía','Cédula de extranjería','NIT','Pasaporte']],['cm_num_doc','Número de documento'],['cm_dir_radica','Dirección'],['cm_localidad','Localidad del predio'],['cm_depto','Departamento','select',['Bogotá D.C.']],['cm_mpio','Municipio','select',['Bogotá']],['cm_celular','Celular'],['sol_correo','Correo electrónico','email'],['cm_nombre_proyecto','Nombre del proyecto','select',['CUNDINAMARCA AL 100','ENERGÍA SEGURA PARA TODOS','NORMALIZACIÓN DE INSTITUCIONES EDUCATIVAS']]],
       e1:[['e1_tipo_persona','Tipo de persona','radio',['Natural','Jurídica']],['e1_zona','Zona','radio',['Urbana','Rural']],['e1_coord_x','Longitud'],['e1_coord_y','Latitud'],['e1_indicaciones','Indicaciones de acceso al predio','textarea'],['e1_red_cercana','Red eléctrica cercana','radio',['Sí','No']],['e1_distancia_red','Distancia a la red más cercana (m)','number'],['e1_num_transformador','N° transformador/poste más cercano'],['e1_no_solicitud','No. de solicitud'],['e1_tipo_uso','Tipo de uso','radio',['Residencial','Comercial','Industrial','Oficial','Alumbrado público','Provisional','Servicio transitorio','Otro']],['e1_tipo_uso_otro','Otro ¿Cuál?'],['e1_estrato','Estrato socioeconómico','radio',['1','2','3','4','5','6','N/A']]],
       dj:[['dj_descripcion_titulo','Descripción del inmueble','select',DJ_DESCRIPTIONS.map(x=>x[0])],['dj_ciudad_dom','Ciudad de domicilio'],['dj_fecha_pose','Fecha de posesión','date'],['dj_posesion','Origen de la posesión','select',['Asignación comunitaria o entrega por autoridad local','Compra o cesión de derechos posesorios','Herencia o sucesión familiar','Ocupación directa y mejora de terreno']]],
       retie:[['cm_retie_constructor','Nombre del técnico (RETIE / EC)'],['retie_const_identificacion','Cédula del técnico'],['retie_prof_constructor','Profesión del constructor','select',['Técnico electricista','Tecnólogo electricista']],['retie_consejo','Consejo profesional'],['cm_retie_matricula','Matrícula profesional (RETIE / EC)'],['retie_decl_num','Lugar de expedición'],['retie_fecha_construccion','Fecha de construcción','date']],
@@ -172,7 +172,7 @@
     function inputAttrs(id){
       if(['cm_celular','e1_no_solicitud'].includes(id)) return ' inputmode="numeric" maxlength="10" pattern="\\d{10}"';
       if(['cm_num_doc','retie_const_identificacion'].includes(id)) return ' inputmode="numeric" pattern="\\d*"';
-      if(id==='cm_retie_matricula') return ' maxlength="30"';
+      if(id==='cm_retie_matricula') return ' maxlength="45" autocomplete="off"';
       if(id==='e1_num_transformador') return ' style="text-transform:uppercase" maxlength="30"';
       return '';
     }
@@ -200,7 +200,28 @@
       return `<div class="field"><label for="${safeId}">${safeLabel}</label><input id="${safeId}" type="${type}" value="${escapeAttr(val)}"${extra}${req}></div>`;
     }
     function section(title,fields,extra=''){return `<div class="section"><div class="section-title">${title}</div><div class="fields">${fields.map(fieldHTML).join('')}</div>${extra}</div>`}
-    function renderForm(){const h=$('#formHost'); const sel=state.selected; if(state.form.dj_descripcion&&!state.form.dj_descripcion_titulo){const hit=DJ_DESCRIPTIONS.find(x=>x[1]===state.form.dj_descripcion);if(hit)state.form.dj_descripcion_titulo=hit[0];} const activeRO=state.currentRecord?.orden_ro||state.registration?.orden_ro||''; if(activeRO)state.form.e1_no_solicitud=activeRO; const place=state.currentRecord||state.registration||{};const mpio=place.municipio||(BOG.includes(place.localidad||'')?'Bogotá':CUND.includes(place.localidad||'')?place.localidad:'');if(mpio){state.form.cm_mpio=mpio;state.form.cm_depto=mpio==='Bogotá'?'Bogotá D.C.':'Cundinamarca';state.form.cm_localidad=mpio==='Bogotá'?(place.localidad||''):'No aplica';} $('#resume').textContent=sel.length?sel.map(d=>DOCS[d]).join(' · '):'Seleccione documentos.'; renderMasterSummary(); if(!sel.length){h.innerHTML='<div class="section"><p class="help">Seleccione documentos para construir el formulario.</p></div>';return;} let html=''; const captured=state.currentRecord?new Set(['cm_nombre','cm_fecha_solicitud','cm_num_doc','cm_dir_radica','cm_localidad','cm_depto','cm_mpio','cm_celular']):new Set(); const gen=FIELDS.general.filter(f=>!captured.has(f[0]) && !(f[0]==='sol_correo'&&!sel.includes('E1')) && !(f[0]==='cm_nombre_proyecto'&&!sel.some(d=>['E1','E6'].includes(d)))); if(gen.length)html+=section('Datos adicionales',gen); if(sel.includes('E1')){const e1cap=state.currentRecord?new Set(['e1_zona','e1_coord_x','e1_coord_y']):new Set(); html+=section('Solicitud de servicio (E1)',FIELDS.e1.filter(f=>!e1cap.has(f[0])));} if(sel.includes('E6')&&!sel.includes('RETIE'))html+=section('Recibo técnico E6',FIELDS.retie.filter(f=>f[0]==='cm_retie_constructor')); if(sel.includes('DJ'))html+=section('Declaración juramentada',FIELDS.dj); if(sel.includes('RETIE'))html+=section('RETIE',FIELDS.retie); if(sel.includes('EC')&&!sel.includes('RETIE')){const ecTech=FIELDS.retie.filter(f=>['cm_retie_constructor','cm_retie_matricula','retie_const_identificacion','retie_prof_constructor','retie_consejo'].includes(f[0]));html+=section('Información del técnico electricista',ecTech);} h.innerHTML=html; bindForm(); updateRetie(); updateKpis();}
+    function renderForm(){const h=$('#formHost'); const sel=state.selected; if(state.form.dj_descripcion&&!state.form.dj_descripcion_titulo){const hit=DJ_DESCRIPTIONS.find(x=>x[1]===state.form.dj_descripcion);if(hit)state.form.dj_descripcion_titulo=hit[0];} const activeRO=state.currentRecord?.orden_ro||state.registration?.orden_ro||''; if(activeRO)state.form.e1_no_solicitud=activeRO; const place=state.currentRecord||state.registration||{};const mpio=place.municipio||(BOG.includes(place.localidad||'')?'Bogotá':CUND.includes(place.localidad||'')?place.localidad:'');if(mpio){state.form.cm_mpio=mpio;state.form.cm_depto=mpio==='Bogotá'?'Bogotá D.C.':'Cundinamarca';state.form.cm_localidad=mpio==='Bogotá'?(place.localidad||''):'No aplica';} $('#resume').textContent=sel.length?sel.map(d=>DOCS[d]).join(' · '):'Seleccione documentos.'; renderMasterSummary(); if(!sel.length){h.innerHTML='<div class="section"><p class="help">Seleccione documentos para construir el formulario.</p></div>';return;} let html=''; const captured=state.currentRecord?new Set(['cm_nombre','cm_fecha_solicitud','cm_num_doc','cm_localidad','cm_depto','cm_mpio','cm_celular']):new Set(); const gen=FIELDS.general.filter(f=>!captured.has(f[0]) && !(f[0]==='sol_correo'&&!sel.includes('E1')) && !(f[0]==='cm_nombre_proyecto'&&!sel.some(d=>['E1','E6'].includes(d)))); if(gen.length)html+=section('Datos adicionales',gen); if(sel.includes('E1')){const e1cap=state.currentRecord?new Set(['e1_zona','e1_coord_x','e1_coord_y']):new Set(); html+=section('Solicitud de servicio (E1)',FIELDS.e1.filter(f=>!e1cap.has(f[0])));} if(sel.includes('E6')&&!sel.includes('RETIE'))html+=section('Recibo técnico E6',FIELDS.retie.filter(f=>f[0]==='cm_retie_constructor')); if(sel.includes('DJ'))html+=section('Declaración juramentada',FIELDS.dj); if(sel.includes('RETIE'))html+=section('RETIE',FIELDS.retie); if(sel.includes('EC')&&!sel.includes('RETIE')){const ecTech=FIELDS.retie.filter(f=>['cm_retie_constructor','cm_retie_matricula','retie_const_identificacion','retie_prof_constructor','retie_consejo'].includes(f[0]));html+=section('Información del técnico electricista',ecTech);} h.innerHTML=html; bindForm(); updateRetie(); updateKpis();}
+    function gs112SyncAddressEverywhere(value,persist=false){
+      const v=String(value||'');
+      state.form=state.form||{};
+      state.registration=state.registration||{};
+      state.form.cm_dir_radica=v;
+      state.registration.direccion=v;
+      if(state.currentRecord){
+        state.currentRecord.direccion=v;
+        if(persist){
+          const all=records();
+          const ix=all.findIndex(x=>x.id_registro===state.currentRecord.id_registro);
+          if(ix>=0){
+            all[ix]={...all[ix],direccion:v,fecha_hora_actualizacion:new Date().toISOString()};
+            saveRecords(all);
+            state.currentRecord=all[ix];
+          }
+        }
+      }
+      if(typeof save==='function')save();
+    }
+
     function bindForm(){
       document.querySelectorAll('#formHost input,#formHost select,#formHost textarea').forEach(el=>{
         const sync=(finalize=false)=>{
@@ -209,10 +230,16 @@
           }else if(el.tagName==='SELECT'){
             state.form[el.id]=el.value;
           }else{
-            let clean=smartValue(el.id,el.value);
-            if(finalize && el.type!=='date' && el.type!=='number' && el.type!=='email') clean=upperCaseWords(clean);
-            if(el.type==='email') clean=upperCaseLive(clean);
-            state.form[el.id]=clean;
+            let clean;
+            if(el.id==='cm_dir_radica'){
+              clean=finalize ? gs77NormalizeAddress(el.value) : addressTypingValue(el.value);
+              gs112SyncAddressEverywhere(clean,finalize);
+            }else{
+              clean=smartValue(el.id,el.value);
+              if(finalize && el.type!=='date' && el.type!=='number' && el.type!=='email') clean=upperCaseWords(clean);
+              if(el.type==='email') clean=upperCaseLive(clean);
+              state.form[el.id]=clean;
+            }
             if(el.id==='dj_descripcion_titulo'){
               state.form.dj_descripcion=DJ_DESCRIPTION_MAP[clean]||'';
               const pv=$('#djDescripcionPreview');if(pv){pv.textContent=state.form.dj_descripcion||'Selecciona una opción para ver el párrafo que se incluirá en la Declaración Juramentada.';pv.classList.toggle('empty',!clean)}
@@ -764,39 +791,59 @@
     // - "Todos los elementos de EXTERNA": se activa cuando la selección equivale a instalación externa completa.
     // - "Interna": depende del valor Sí/No de "Requiere instalación interna".
     // Los comodines nunca aparecen como opciones visibles. "Instalación completa" sí es una opción visible de campo.
+    // Matriz maestra restaurada: 19 hallazgos visibles acordados.
+    // "NO APLICA" y "Todos los elementos de EXTERNA" son comodines internos:
+    // nunca se muestran como elementos requeridos.
     const TECH_RULES=[
+      {tipo:'Externa',requiere:'No',elemento:'NO APLICA',texto:'Acometida existente en buen estado y SÍ cumple condiciones técnicas.'},
       {tipo:'Externa',requiere:'Sí',elemento:'Acometida',texto:'Acometida existente NO cumple condiciones técnicas.'},
       {tipo:'Externa',requiere:'Sí',elemento:'Celda',texto:'Celda de medida encontrada NO cumple requerimiento técnico.'},
+      {tipo:'Externa',requiere:'No',elemento:'Celda',texto:'Celda de medida encontrada SÍ cumple requerimiento técnico.'},
       {tipo:'Externa',requiere:'Sí',elemento:'Todos los elementos de EXTERNA',texto:'Disposición en fachada de predio para instalación externa NO cumple distancias de seguridad con respecto a instalaciones de agua/gas.'},
       {tipo:'Externa',requiere:'Sí',elemento:'Ducto 1" Galv.',texto:'Ducto empotrado encontrado NO cumple requerimiento técnico.'},
+      {tipo:'Externa',requiere:'No',elemento:'Ducto 1" Galv.',texto:'Ducto empotrado encontrado SÍ cumple requerimiento técnico.'},
       {tipo:'Externa',requiere:'Sí',elemento:'Ducto 1" Galv.',texto:'Fachada de predio con saliente, requiere curvas y uniones.'},
       {tipo:'Externa',requiere:'Sí',elemento:'Acometida',texto:'Fachada de predio no cuenta con condiciones de seguridad para instalar Garrawall o arriostre y requiere labor en alturas.'},
-      {tipo:'Interna',requiere:'No',elemento:'Interna',texto:'No es posible realizar validación técnica completa del predio.'},
+      {tipo:'Interna',requiere:'No',elemento:'NO APLICA',texto:'No es posible realizar validación técnica completa del predio.'},
+      {tipo:'Externa',requiere:'No',elemento:'NO APLICA',texto:'Predio con instalación externa completa, SÍ cumple norma técnica.'},
       {tipo:'Externa',requiere:'Sí',elemento:'Todos los elementos de EXTERNA',texto:'Predio con instalación externa, NO cumple norma técnica.'},
-      {tipo:'Interna',requiere:'Sí',elemento:'Interna',texto:'Predio con instalación interna, NO cumple norma técnica.'},
+      {tipo:'Interna',requiere:'Sí',elemento:'NO APLICA',texto:'Predio con instalación interna, NO cumple norma técnica.'},
       {tipo:'Externa',requiere:'Sí',elemento:'Todos los elementos de EXTERNA',texto:'Predio en material perdurable sin espacio técnicamente viable para instalación del equipo de medida.'},
       {tipo:'Externa',requiere:'Sí',elemento:'Todos los elementos de EXTERNA',texto:'Se recomienda sobreponer TODA la instalación externa.'},
       {tipo:'Externa',requiere:'Sí',elemento:'Sistema puesta a tierra',texto:'Se requiere romper piso para instalación de sistema puesta a tierra (SPT).'},
+      {tipo:'Externa',requiere:'No',elemento:'Sistema puesta a tierra',texto:'Sistema de puesta a tierra (SPT) existente SÍ cumple condiciones técnicas.'},
       {tipo:'Externa',requiere:'Sí',elemento:'Sistema puesta a tierra',texto:'Sistema de puesta a tierra (SPT) existente NO cumple condiciones técnicas.'},
-      {tipo:'Interna',requiere:'Sí',elemento:'Interna',texto:'Usuario requiere al proceso el suministro de la instalación interna.'}
+      {tipo:'Interna',requiere:'Sí',elemento:'NO APLICA',texto:'Usuario requiere al proceso el suministro de la instalación interna.'}
     ];
     function techComponent(regla){
-      if(regla.elemento==='Acometida')return 'ACOMETIDA';
-      if(regla.elemento==='Celda')return 'CELDA DE MEDIDA';
-      if(regla.elemento==='Ducto 1" Galv.')return 'DUCTO / CANALIZACIÓN';
-      if(regla.elemento==='Sistema puesta a tierra')return 'SISTEMA DE PUESTA A TIERRA';
-      if(regla.tipo==='Interna')return 'INSTALACIÓN INTERNA';
-      if(/fachada|distancias|espacio técnicamente viable/i.test(regla.texto))return 'FACHADA / DISPOSICIÓN';
+      const t=String(regla.texto||'');
+      if(regla.tipo==='Interna'||/instalación interna|validación técnica completa|suministro.*interna/i.test(t))return 'INSTALACIÓN INTERNA';
+      if(regla.elemento==='Acometida'||/acometida/i.test(t))return 'ACOMETIDA';
+      if(regla.elemento==='Celda'||/celda de medida/i.test(t))return 'CELDA DE MEDIDA';
+      if(regla.elemento==='Ducto 1" Galv.'||/ducto|curvas y uniones/i.test(t))return 'DUCTO / CANALIZACIÓN';
+      if(regla.elemento==='Sistema puesta a tierra'||/puesta a tierra|\bSPT\b/i.test(t))return 'SISTEMA DE PUESTA A TIERRA';
+      if(/fachada|distancias|espacio técnicamente viable/i.test(t))return 'FACHADA / DISPOSICIÓN';
       return 'INSTALACIÓN EXTERNA';
     }
     TECH_RULES.forEach(r=>{r.componente=techComponent(r);r.texto=String(r.texto||'').toLocaleUpperCase('es-CO')});
     const TECH_STATUS=TECH_RULES.map(x=>x.texto).sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
     function availableTechStatus(rec=state.registration||{}){
       const interna=rec.requiere_interna||'No',externa=rec.requiere_externa||'No';
-      const elementos=expandedExternalElements(rec),todosExternos=externalIsComplete(rec)||EXT_ELEMENTS.every(x=>elementos.includes(x));
+      const elementos=expandedExternalElements(rec),completa=externalIsComplete(rec);
+      const todosExternos=completa||EXT_ELEMENTS.every(x=>elementos.includes(x));
+
+      // Regla acordada para "Instalación completa":
+      // muestra el catálogo completo de 19 hallazgos para que el técnico pueda
+      // determinar conformidad/no conformidad por componente sin perder opciones.
+      if(completa){
+        return [...new Set(TECH_RULES.map(x=>x.texto))]
+          .sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
+      }
+
       return TECH_RULES.filter(regla=>{
-        if(regla.tipo==='Interna')return regla.elemento==='Interna'&&regla.requiere===interna;
+        if(regla.tipo==='Interna')return regla.requiere===interna;
         if(regla.requiere!==externa)return false;
+        if(regla.elemento==='NO APLICA')return true;
         if(regla.elemento==='Todos los elementos de EXTERNA')return todosExternos;
         return elementos.includes(regla.elemento);
       }).map(x=>x.texto).sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'}));
@@ -812,7 +859,8 @@
         if(!g){g=[r.componente,[]];groups.push(g)}
         g[1].push(r.texto);
       }
-      return groups.map(([name,items])=>`<div class="multi-category">${escapeText(name)}</div>${items.map(o=>`<button type="button" class="tech-option ap-multi-option ${selected.includes(o)?'active':''}" data-tech="${escapeAttr(o)}"><span>${escapeText(o)}</span></button>`).join('')}`).join('');
+      const count=`<div class="tech-available-count">${rules.length} HALLAZGO${rules.length===1?'':'S'} DISPONIBLE${rules.length===1?'':'S'}</div>`;
+      return count+groups.map(([name,items])=>`<div class="multi-category">${escapeText(name)}</div>${items.map(o=>`<button type="button" class="tech-option ap-multi-option ${selected.includes(o)?'active':''}" data-tech="${escapeAttr(o)}"><span>${escapeText(o)}</span></button>`).join('')}`).join('');
     }
     function renderGroupedSecurity(selected){
       return SECURITY_GROUPS.map(([name,items])=>`<div class="multi-category">${escapeText(name)}</div>${items.map(o=>`<button type="button" class="tech-option ap-multi-option ${selected.includes(o)?'active':''}" data-multi-value="${escapeAttr(o)}"><span>${escapeText(o)}</span></button>`).join('')}`).join('');
@@ -854,7 +902,7 @@
     function renderRegistration(){
       if(!state.registration)state.registration={};if(!Number.isInteger(state.regStep))state.regStep=0;state.regStep=Math.max(0,Math.min(REG_STEPS.length-1,state.regStep));const r=state.registration;r.fecha_registro=r.fecha_registro||todayISO();if(!r.municipio){if(BOG.includes(r.localidad||''))r.municipio='Bogotá';else if(CUND.includes(r.localidad||'')){r.municipio=r.localidad;r.localidad='No aplica';}else if((state.jornada?.contrato||'')==='APPLUS')r.municipio='Bogotá';}if(r.municipio&&r.municipio!=='Bogotá')r.localidad='No aplica';if(r.municipio==='Bogotá'&&r.localidad==='No aplica')r.localidad='';r.tipo_zona=r.tipo_zona||'Urbana';['esquema_particular','requiere_redes','requiere_muro','garrawall','arriostre','requiere_interna','requiere_externa'].forEach(k=>{if(!r[k])r[k]='No'});r.esquema_contrato=r.esquema_particular==='No'?'Sí':'No';if(!Array.isArray(r.elementos_externos))r.elementos_externos=[];r.elementos_externos=normalizeExternalElements(r.elementos_externos);if(!Array.isArray(r.estado_tecnico))r.estado_tecnico=[];if(!Array.isArray(r.documentos_pendientes))r.documentos_pendientes=[];if(!Array.isArray(r.condiciones_seguridad))r.condiciones_seguridad=[];syncAvailableTechStatus();const techOptions=availableTechStatus(r);
       const host=$('#regHost');if(!host)return;const step=state.regStep;let html='';
-      if(step===0)html=`${txtImportBox()}<div class="reg-grid"><div class="reg-field"><label>Orden RO <span class="req">*</span></label><input id="reg_ro" inputmode="numeric" maxlength="10" value="${escapeAttr(r.orden_ro||'')}" placeholder="10 dígitos"><div id="roCount" class="counter">${(r.orden_ro||'').length}/10</div></div><div class="reg-field"><label for="reg_fecha">Fecha de registro</label><input id="reg_fecha" type="date" value="${escapeAttr(r.fecha_registro||'')}" aria-label="Fecha de registro"></div><div class="reg-field full"><label>Nombres <span class="req">*</span></label><input id="reg_nombres" value="${escapeAttr(r.nombres||'')}"></div><div class="reg-field"><label>Identificación <span class="req">*</span></label><input id="reg_identificacion" inputmode="numeric" value="${escapeAttr(r.identificacion||'')}"></div><div class="reg-field"><label>Contacto <span class="req">*</span></label><input id="reg_contacto" inputmode="tel" maxlength="30" value="${escapeAttr(r.contacto||'')}" placeholder="Ej. 3001234567-3159876543"><div id="contactCount" class="counter">${countContactDigits(r.contacto||'')} dígitos</div></div><div class="reg-field full"><label>Dirección <span class="req">*</span></label><input id="reg_direccion" value="${escapeAttr(r.direccion||'')}" placeholder="Se guarda en MAYÚSCULAS"></div>${selectHTML('reg_municipio','Municipio',REG_MUNICIPIOS,r.municipio||'')}${r.municipio==='Bogotá'?selectHTML('reg_localidad','Localidad',BOG,r.localidad||''):`<div class="reg-field"><label>Localidad</label><div class="auto-value">No aplica</div></div>`}<div class="reg-field"><label>Sector / Barrio <span class="req">*</span></label><input id="reg_sector" value="${escapeAttr(r.sector||'')}" placeholder="Barrio o vereda"></div>${zoneSeg(r.tipo_zona)}${selectHTML('reg_poblacion','Tipo de población',POPULATION_OPTIONS,r.tipo_poblacion||'')}${selectHTML('reg_propiedad','Documento de propiedad',PROPERTY_DOCS,r.documento_propiedad||'')}</div>`;
+      if(step===0)html=`${txtImportBox()}<div class="reg-grid"><div class="reg-field"><label>Orden RO <span class="req">*</span></label><input id="reg_ro" inputmode="numeric" maxlength="10" value="${escapeAttr(r.orden_ro||'')}" placeholder="10 dígitos"><div id="roCount" class="counter">${(r.orden_ro||'').length}/10</div></div><div class="reg-field"><label for="reg_fecha">Fecha de registro</label><input id="reg_fecha" type="date" value="${escapeAttr(r.fecha_registro||'')}" aria-label="Fecha de registro"></div><div class="reg-field full"><label>Nombres <span class="req">*</span></label><input id="reg_nombres" value="${escapeAttr(r.nombres||'')}"></div><div class="reg-field"><label>Identificación <span class="req">*</span></label><input id="reg_identificacion" inputmode="numeric" value="${escapeAttr(r.identificacion||'')}"></div><div class="reg-field"><label>Contacto <span class="req">*</span></label><input id="reg_contacto" inputmode="tel" maxlength="30" value="${escapeAttr(r.contacto||'')}" placeholder="Ej. 3001234567-3159876543"><div id="contactCount" class="counter">${countContactDigits(r.contacto||'')} dígitos</div></div><div class="reg-field full"><label>Dirección <span class="req">*</span></label><input id="reg_direccion" autocomplete="street-address" value="${escapeAttr(r.direccion||'')}" placeholder="Puedes corregir o completar la dirección"></div>${selectHTML('reg_municipio','Municipio',REG_MUNICIPIOS,r.municipio||'')}${r.municipio==='Bogotá'?selectHTML('reg_localidad','Localidad',BOG,r.localidad||''):`<div class="reg-field"><label>Localidad</label><div class="auto-value">No aplica</div></div>`}<div class="reg-field"><label>Sector / Barrio <span class="req">*</span></label><input id="reg_sector" value="${escapeAttr(r.sector||'')}" placeholder="Barrio o vereda"></div>${zoneSeg(r.tipo_zona)}${selectHTML('reg_poblacion','Tipo de población',POPULATION_OPTIONS,r.tipo_poblacion||'')}${selectHTML('reg_propiedad','Documento de propiedad',PROPERTY_DOCS,r.documento_propiedad||'')}</div>`;
       if(step===1)html=`<div class="reg-grid">${yesNo('esquema_particular','Esquema Particular',r.esquema_particular)}${yesNo('esquema_contrato','Esquema Contrato',r.esquema_contrato,true,true)}${yesNo('requiere_redes','Requiere de redes',r.requiere_redes)}${selectHTML('reg_material','Tipo material predio',MATERIAL_TYPES,r.tipo_material||'')}<div class="reg-field"><label>Plantas <span class="req">*</span></label><input id="reg_plantas" type="number" min="1" max="20" inputmode="numeric" value="${escapeAttr(r.plantas||'')}" placeholder="Ej. 2"></div>${yesNo('requiere_muro','Requiere muro / Pilar',r.requiere_muro)}${multiFieldHTML('pendingDocs','Documentos pendientes',PENDING_DOCS,r.documentos_pendientes)}<div class="reg-field full"><label>Hallazgos de seguridad</label><div id="securityMulti" class="multi-drop ap-multi"><button type="button" class="multi-trigger" id="securityTrigger"><span>${r.condiciones_seguridad.length?`${r.condiciones_seguridad.length} SELECCIONADA${r.condiciones_seguridad.length===1?'':'S'}`:'SELECCIONAR HALLAZGOS'}</span><span>⌃</span></button><div class="multi-menu"><div class="multi-options-scroll">${renderGroupedSecurity(r.condiciones_seguridad)}</div><div class="multi-footer"><span id="securityCount" class="tech-summary">${r.condiciones_seguridad.length} SELECCIONADA${r.condiciones_seguridad.length===1?'':'S'}</span><button type="button" id="securityDone" class="btn secondary">LISTO</button></div></div></div></div></div>`;
       if(step===2)html=`<div class="reg-grid">${yesNo('garrawall','Requiere uso de Garrawall',r.garrawall)}${yesNo('arriostre','Requiere uso de arriostre',r.arriostre)}${yesNo('requiere_interna','Requiere instalación interna',r.requiere_interna)}${yesNo('requiere_externa','Requiere instalación externa',r.requiere_externa)}<div class="reg-field full"><label>Elementos requeridos de instalación externa</label><div id="extMulti" class="multi-drop"><button type="button" class="multi-trigger" id="extTrigger"><span>${r.elementos_externos.length?escapeText(r.elementos_externos.join(' | ')):'Selecciona uno o varios...'}</span><span>⌄</span></button><div class="multi-menu ext-menu">${EXT_OPTIONS.map(o=>`<button type="button" class="multi-option ${r.elementos_externos.includes(o)?'active':''}" data-ext="${escapeAttr(o)}">${escapeText(o)}</button>`).join('')}<div class="multi-footer"><span id="extCount" class="tech-summary">${r.elementos_externos.length} seleccionado${r.elementos_externos.length===1?'':'s'}</span><button type="button" id="extDone" class="btn secondary">Listo</button></div></div></div></div></div>`;
       if(step===3)html=`<div class="reg-grid"><div class="reg-field full"><label>Estado técnico</label><div id="techMulti" class="multi-drop"><button type="button" class="multi-trigger" id="techTrigger"><span>${r.estado_tecnico.length?`${r.estado_tecnico.length} opcion${r.estado_tecnico.length===1?'':'es'} seleccionada${r.estado_tecnico.length===1?'':'s'}`:'SELECCIONAR NOVEDADES'}</span><span>⌄</span></button><div class="multi-menu tech-menu"><input id="techSearch" class="multi-search" placeholder="BUSCAR NOVEDAD..."><div id="techOptions">${renderGroupedTechnical(r,r.estado_tecnico)}</div></div></div></div><div class="reg-field full"><label>Observaciones</label><textarea id="reg_observaciones" placeholder="Puedes complementar o editar el texto">${escapeText(r.observaciones||'')}</textarea></div></div>`;
@@ -1029,7 +1077,7 @@
     async function closeJornada(){const rows=jornadaRows();if(!rows.length)return toast('No hay registros para cerrar');const dup=duplicateROs(rows);if(dup.length){alert('⚠️ Orden RO duplicada\n\nCorrige antes de cerrar la jornada:\n'+dup.join('\n'));return}const exported=await exportJornada();if(!exported)return;if(confirm('¿Confirmas que guardaste o enviaste los archivos de cierre de la jornada?\n\nAceptar limpiará los registros operativos del dispositivo.')){localStorage.removeItem(recordsKey);localStorage.removeItem(txtKey);localStorage.removeItem(appKey);toast('Jornada cerrada y datos operativos limpiados');setTimeout(()=>location.reload(),500)}}
     function renderRecordsScreen(){const host=$('#recordsHost');if(!host)return;const all=[...records()].sort((a,b)=>String(b.fecha_hora_creacion||'').localeCompare(String(a.fecha_hora_creacion||''))),today=recordsOfToday(),pageSize=10,totalPages=Math.max(1,Math.ceil(all.length/pageSize));recordsPage=Math.min(recordsPage,totalPages-1);const rows=all.slice(recordsPage*pageSize,(recordsPage+1)*pageSize);host.innerHTML=`<div class="records-kpis"><div class="records-kpi"><b>${today.length}</b><span>Registros hoy</span></div><div class="records-kpi"><b>${all.length}</b><span>Pendientes de exportar</span></div></div><div class="records-toolbar"><button id="closeJornada" class="btn">📦 Cerrar y exportar jornada</button></div><div class="records-list">${rows.length?rows.map(r=>`<div class="record-row"><div class="record-row-top"><strong>${escapeText(r.nombres||'Sin nombre')}</strong><span class="sync-pill pending">Pendiente de exportar</span></div><small>RO ${escapeText(r.orden_ro||'—')} · ${escapeText(r.identificacion||'—')} · ${escapeText(r.direccion||'—')}</small><div class="record-actions"><button type="button" class="btn ghost edit-record" data-edit-record="${escapeAttr(r.id_registro||'')}">✏️ Editar registro</button></div></div>`).join(''):'<div class="tech-summary">Todavía no hay registros guardados.</div>'}</div>${all.length>pageSize?`<div class="records-pager"><button id="recordsPrev" class="btn ghost" ${recordsPage===0?'disabled':''}>← Anterior</button><span class="txt-status">Página ${recordsPage+1} / ${totalPages}</span><button id="recordsNext" class="btn ghost" ${recordsPage>=totalPages-1?'disabled':''}>Siguiente →</button></div>`:''}`;$('#closeJornada').onclick=closeJornada;host.querySelectorAll('[data-edit-record]').forEach(b=>b.onclick=()=>editRecord(b.dataset.editRecord));const prev=$('#recordsPrev');if(prev)prev.onclick=()=>{if(recordsPage>0){recordsPage--;renderRecordsScreen()}};const next=$('#recordsNext');if(next)next.onclick=()=>{if(recordsPage<totalPages-1){recordsPage++;renderRecordsScreen()}}}
     function editRecord(id){const r=records().find(x=>x.id_registro===id);if(!r)return toast('No se encontró el registro');state.editingRecordId=id;state.currentRecord=r;state.registration={...r,elementos_externos:normalizeExternalElements(r.elementos_externos),estado_tecnico:[...(r.estado_tecnico||[])],documentos_pendientes:[...(r.documentos_pendientes||[])],condiciones_seguridad:[...(r.condiciones_seguridad||[])]};state.signatures={...state.signatures,solicitante:r.firma_usuario||state.signatures?.solicitante||'',tecnico:r.firma_tecnico||state.signatures?.tecnico||''};state.form={};state.selected=[];state.regStep=0;applyRegistrationToDocs(r);renderRegistration();renderDocs();save();show('register');window.scrollTo(0,0);toast('Registro cargado para edición')}
-    function applyRegistrationToDocs(rec){const r=rec||state.registration;const mpio=r.municipio||(BOG.includes(r.localidad||'')?'Bogotá':CUND.includes(r.localidad||'')?r.localidad:'');state.form.cm_retie_constructor=state.jornada?.tecnico_nombre||state.form.cm_retie_constructor||'';state.form.retie_const_identificacion=state.jornada?.tecnico_cedula||state.form.retie_const_identificacion||'';state.form.cm_nombre=r.nombres||'';state.form.cm_fecha_solicitud=r.fecha_registro||todayISO();state.form.cm_num_doc=r.identificacion||'';state.form.cm_dir_radica=r.direccion||'';state.form.cm_localidad=mpio==='Bogotá'?(r.localidad||''):'No aplica';state.form.cm_depto=mpio==='Bogotá'?'Bogotá D.C.':'Cundinamarca';state.form.cm_mpio=mpio||'';state.form.e1_no_solicitud=r.orden_ro||'';state.form.cm_celular=primaryContact(r.contacto||'');state.form.e1_zona=r.tipo_zona||'';state.form.e1_coord_y=r.latitud||'';state.form.e1_coord_x=r.longitud||'';}
+    function applyRegistrationToDocs(rec){const r=rec||state.registration;const mpio=r.municipio||(BOG.includes(r.localidad||'')?'Bogotá':CUND.includes(r.localidad||'')?r.localidad:'');state.form.cm_retie_constructor=state.jornada?.tecnico_nombre||state.form.cm_retie_constructor||'';state.techProfile=state.techProfile||{};state.form.retie_const_identificacion=r.tecnico_cedula||state.techProfile.cedula||state.form.retie_const_identificacion||'';state.form.retie_prof_constructor=r.tecnico_profesion||state.techProfile.profesion||state.form.retie_prof_constructor||'';state.form.retie_consejo=r.tecnico_consejo||state.techProfile.consejo||state.form.retie_consejo||'';state.form.cm_retie_matricula=r.tecnico_matricula||state.techProfile.matricula||state.form.cm_retie_matricula||'';state.form.cm_nombre=r.nombres||'';state.form.cm_fecha_solicitud=r.fecha_registro||todayISO();state.form.cm_num_doc=r.identificacion||'';state.form.cm_dir_radica=r.direccion||'';state.form.cm_localidad=mpio==='Bogotá'?(r.localidad||''):'No aplica';state.form.cm_depto=mpio==='Bogotá'?'Bogotá D.C.':'Cundinamarca';state.form.cm_mpio=mpio||'';state.form.e1_no_solicitud=r.orden_ro||'';state.form.cm_celular=primaryContact(r.contacto||'');state.form.e1_zona=r.tipo_zona||'';state.form.e1_coord_y=r.latitud||'';state.form.e1_coord_x=r.longitud||'';}
     function makeUUID(){if(globalThis.crypto?.randomUUID)return crypto.randomUUID();return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0,v=c==='x'?r:(r&3|8);return v.toString(16)})}
     function saveRegistration(){if(!validateRegistration())return;state.registration.nombres=upperCaseWords(state.registration.nombres);state.registration.sector=upperCaseWords(state.registration.sector);state.registration.direccion=gs77NormalizeAddress(state.registration.direccion);state.registration.contacto=cleanContact(state.registration.contacto);state.registration.elementos_externos=normalizeExternalElements(state.registration.elementos_externos);syncAvailableTechStatus();const all=records(),editId=state.editingRecordId||state.currentRecord?.id_registro||null;if(all.some(x=>x.orden_ro===state.registration.orden_ro&&x.id_registro!==editId)){alert('⚠️ Orden RO duplicada\n\nLa Orden RO '+state.registration.orden_ro+' ya fue registrada en esta jornada.\nVerifique el número antes de continuar.');state.regStep=0;renderRegistration();return}const idx=editId?all.findIndex(x=>x.id_registro===editId):-1,prev=idx>=0?all[idx]:{};const id=editId||makeUUID(),now=new Date().toISOString();const r={...prev,...state.registration,elementos_externos:[...(state.registration.elementos_externos||[])],estado_tecnico:[...(state.registration.estado_tecnico||[])],documentos_pendientes:[...(state.registration.documentos_pendientes||[])],condiciones_seguridad:[...(state.registration.condiciones_seguridad||[])],id_registro:id,contrato:prev.contrato||state.jornada?.contrato||'APPLUS',fecha_hora_creacion:prev.fecha_hora_creacion||now,fecha_hora_actualizacion:now,rol:state.role,estado_sync:'PENDIENTE',firma_usuario:state.signatures?.solicitante||prev.firma_usuario||'',firma_tecnico:state.signatures?.tecnico||prev.firma_tecnico||'',tecnico_nombre:state.jornada?.tecnico_nombre||prev.tecnico_nombre||'',tecnico_cedula:state.jornada?.tecnico_cedula||prev.tecnico_cedula||'',td_exportado_individual:false};if(idx>=0)all[idx]=r;else all.push(r);saveRecords(all);state.currentRecord=r;state.registration={...r,elementos_externos:[...(r.elementos_externos||[])],estado_tecnico:[...(r.estado_tecnico||[])],documentos_pendientes:[...(r.documentos_pendientes||[])],condiciones_seguridad:[...(r.condiciones_seguridad||[])]};state.editingRecordId=id;applyRegistrationToDocs(r);const ss=$('#savedSummary');if(ss)ss.innerHTML=`<strong>${escapeText(r.nombres)}</strong><br>RO: ${escapeText(r.orden_ro||'—')}<br>${escapeText(r.direccion)} · ${escapeText(r.municipio||'—')}${r.municipio==='Bogotá'?' / '+escapeText(r.localidad||'—'):''} · ${escapeText(r.sector)}`;save();show('saved');toast(idx>=0?'Registro actualizado':'Registro guardado')}
     function resetRegistrationKeepPlace(){const r=state.registration||{},techSig=state.signatures?.tecnico;state.registration={fecha_registro:todayISO(),municipio:r.municipio||((state.jornada?.contrato||'')==='APPLUS'?'Bogotá':''),localidad:r.municipio==='Bogotá'?(r.localidad||''):'No aplica',sector:r.sector||'',tipo_zona:r.tipo_zona||'Urbana',esquema_particular:'No',esquema_contrato:'Sí',requiere_redes:'No',requiere_muro:'No',garrawall:'No',arriostre:'No',requiere_interna:'No',requiere_externa:'No',elementos_externos:[],estado_tecnico:[],documentos_pendientes:[],condiciones_seguridad:[],tratamiento_datos:''};state.regStep=0;state.currentRecord=null;state.editingRecordId=null;state.form={};state.selected=[];state.signatures=techSig?{tecnico:techSig}:{};state.loads={};renderRegistration();renderDocs();save();show('register');toast('Listo para el siguiente registro');}
@@ -1041,7 +1089,7 @@
     function bind(){ const jct=$('#jornada_contrato');if(jct)jct.onchange=()=>{state.jornada.contrato=jct.value;save()}; const jn=$('#jornada_nombre');if(jn){jn.oninput=()=>{jn.value=upperCaseLive(jn.value);state.jornada.tecnico_nombre=jn.value;save()};jn.onblur=()=>{jn.value=upperCaseWords(jn.value);state.jornada.tecnico_nombre=jn.value;save()}};const jc=$('#jornada_cedula');if(jc)jc.oninput=()=>{jc.value=jc.value.replace(/\D/g,'').slice(0,20);state.jornada.tecnico_cedula=jc.value;save()};const jf=$('#jornadaFirma');if(jf)jf.onclick=()=>openSignatureModal('tecnico');const js=$('#jornadaStart');if(js)js.onclick=startJornada;const jp=$('#jornadaPrevious');if(jp)jp.onclick=()=>show('records'); $('#themeBtn').onclick=()=>{document.body.classList.toggle('dark');$('#themeBtn').textContent=document.body.classList.contains('dark')?'☀️':'🌙';save()}; const mb=$('#menuBtn'),mc=$('#menuClose'),bk=$('#menuBackdrop');if(mb)mb.onclick=()=>setMobileMenu(true);if(mc)mc.onclick=()=>setMobileMenu(false);if(bk)bk.onclick=()=>setMobileMenu(false); document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{if(b.classList.contains('locked'))return toast('Primero guarda el registro');show(b.dataset.go);setMobileMenu(false)}); $('#regPrev').onclick=()=>{state.regStep=Math.max(0,state.regStep-1);renderRegistration();save();window.scrollTo(0,0)}; $('#regNext').onclick=()=>{if(!validateStep(state.regStep))return;state.regStep=Math.min(REG_STEPS.length-1,state.regStep+1);renderRegistration();save();window.scrollTo(0,0)}; $('#saveRegister').onclick=saveRegistration; $('#skipRegister').onclick=()=>{state.currentRecord=null;show('home')}; $('#yesDocs').onclick=()=>{if((state.currentRecord||state.registration||{}).tratamiento_datos==='NO ACEPTO')return toast('El registro quedó guardado sin documentación por no aceptación del tratamiento de datos');show('home')}; const nr=$('#newRecordAfterSave');if(nr)nr.onclick=resetRegistrationKeepPlace; const sr=$('#savedRecords');if(sr)sr.onclick=()=>show('records'); const rb=$('#recordsBack');if(rb)rb.onclick=()=>show(state.currentRecord?'saved':'register'); const rn=$('#recordsNew');if(rn)rn.onclick=resetRegistrationKeepPlace; const cnc=$('#continueNoConsent');if(cnc)cnc.onclick=continueAfterPendingNoConsent; const snc=$('#saveNoConsentRecord');if(snc)snc.onclick=saveNoConsentRecord; const bnc=$('#backConsent');if(bnc)bnc.onclick=()=>{state.regStep=4;show('register');renderRegistration()}; $('#backRegister').onclick=()=>show('register'); $('#goForm').onclick=()=>show('form'); const formNext=$('#formNext');if(formNext)formNext.onclick=()=>{if(!validateRequired())return;if(!state.signatures?.solicitante)return toast('Falta la firma del usuario');if(!state.signatures?.tecnico)return toast('Falta la firma del técnico / gestor');show('supports')}; const clr=$('#clear');if(clr)clr.onclick=()=>{localStorage.removeItem(appKey);location.reload()}; const fc=$('#finishClean');if(fc)fc.onclick=()=>show('records'); $('#supportInput').onchange=e=>{state.supports=[...e.target.files];renderSupports()}; $('#genZip').onclick=generateZip;}
     function renderSupports(){const h=$('#supportPreview');h.innerHTML='';state.supports.forEach(f=>{const d=document.createElement('div'); if(f.type.startsWith('image/')){const img=document.createElement('img');img.src=URL.createObjectURL(f);d.appendChild(img)}else d.textContent=f.name;h.appendChild(d);});}
     bindSignatureModal(); load(); if(!state.registration)state.registration={};if(!state.jornada)state.jornada={active:false,contrato:'',tecnico_nombre:''};if(!state.techProfile)state.techProfile={nombre:state.jornada?.tecnico_nombre||'',cedula:'',profesion:'',consejo:'',matricula:''};if(!state.registration.municipio&&(state.jornada?.contrato||'')==='APPLUS')state.registration.municipio='Bogotá'; const roleParam=new URLSearchParams(location.search).get('role'); state.role=roleParam==='admin'?'admin':'tecnico'; if(!Number.isInteger(state.regStep))state.regStep=0; renderJornada();renderRegistration(); renderDocs(); bind(); renderForm(); renderSignatures(); if(state.role==='tecnico'&&!state.jornada.active)state.screen='jornada';else if(state.role==='tecnico'&&!state.currentRecord&&!['register','pendingNoConsent','saved','records'].includes(state.screen))state.screen='register'; show(state.screen||'register'); $('#themeBtn').textContent=document.body.classList.contains('dark')?'☀️':'🌙';
-    if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js?v=gsdoc-v110-generation-fix').catch(()=>{});}
+    if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js?v=gsdoc-v112-address-matricula').catch(()=>{});}
   
 
 /* Current GS Documentos logic and field workflow adjustments */
@@ -1401,6 +1449,30 @@
     return result;
   }
 
+  function gs112MatriculaHint(){
+    const id=document.getElementById('retie_const_identificacion');
+    const prof=document.getElementById('retie_prof_constructor');
+    const mat=document.getElementById('cm_retie_matricula');
+    if(!mat)return;
+    let hint=document.getElementById('matriculaFormatHint');
+    if(!hint){
+      hint=document.createElement('div');
+      hint.id='matriculaFormatHint';
+      hint.className='matricula-format-hint';
+      mat.insertAdjacentElement('afterend',hint);
+    }
+    const ced=String(id?.value||state.form?.retie_const_identificacion||state.techProfile?.cedula||'').replace(/\D/g,'').slice(0,20);
+    const profesion=String(prof?.value||state.form?.retie_prof_constructor||state.techProfile?.profesion||'').trim();
+    const consejo=gs77CouncilForProfession(profesion);
+    const raw=gs77RawMatricula(mat.value||'');
+    const hasCed=ced && raw.replace(/\D/g,'').includes(ced);
+    if(!profesion){hint.textContent='SELECCIONA LA PROFESIÓN PARA DEFINIR EL FORMATO DE LA MATRÍCULA.';return}
+    if(!ced){hint.textContent='INGRESA LA CÉDULA DEL TÉCNICO PARA COMPLETAR LA MATRÍCULA.';return}
+    if(hasCed){hint.textContent='MATRÍCULA COMPLETA: '+raw;return}
+    const preview=raw?gs78FormatMatricula(raw,ced,profesion):(consejo==='CONALTEL'?`SERIE-${ced}`:`${ced}-SERIE`);
+    hint.textContent='FORMATO FINAL: '+preview;
+  }
+
   function gs77ApplyRetieTech(){
     const techName=String(
       document.getElementById('jornada_nombre')?.value ||
@@ -1438,8 +1510,13 @@
           state.techProfile=state.techProfile||{};
           state.techProfile.nombre=techName;
           state.techProfile.cedula=id.value;
-          // Si la matrícula actual fue generada con una cédula anterior, se recompone al salir del campo.
+          gs112MatriculaHint();
           if(typeof save==='function')save();
+        });
+        id.addEventListener('blur',()=>{
+          const current=String(document.getElementById('cm_retie_matricula')?.value||state.form?.cm_retie_matricula||'');
+          if(current)gs77SyncMatricula({keepSerial:true});
+          gs112MatriculaHint();
         });
       }
     }
@@ -1473,6 +1550,7 @@
         mat.disabled=!p;
         mat.placeholder=p ? 'ESCRIBA LA SERIE O LA MATRÍCULA COMPLETA' : 'SELECCIONE PRIMERO LA PROFESIÓN';
       }
+      gs112MatriculaHint();
       if(typeof save==='function')save();
     };
 
@@ -1501,18 +1579,28 @@
           mat.value=gs77RawMatricula(mat.value);
           state.form=state.form||{};
           state.form.cm_retie_matricula=mat.value;
-          state.techProfile=state.techProfile||{};
-          state.techProfile.matricula=mat.value;
+          gs112MatriculaHint();
           if(typeof save==='function')save();
         });
-        mat.addEventListener('blur',()=>{
+        const finalizeMatricula=()=>{
           gs77FinalizeMatricula();
           state.techProfile=state.techProfile||{};
           state.techProfile.matricula=String(state.form?.cm_retie_matricula||mat.value||'');
+          gs112MatriculaHint();
           if(typeof save==='function')save();
+        };
+        mat.addEventListener('blur',finalizeMatricula);
+        mat.addEventListener('change',finalizeMatricula);
+        mat.addEventListener('keydown',e=>{
+          if(e.key==='Enter'){
+            e.preventDefault();
+            finalizeMatricula();
+            mat.blur();
+          }
         });
       }
     }
+    gs112MatriculaHint();
   }
 
   function gs77DecorateJornada(){
@@ -2299,8 +2387,15 @@
           id.value=String(id.value||'').replace(/\D/g,'').slice(0,20);
           state.form=state.form||{};
           state.form.retie_const_identificacion=id.value;
-          gs77SyncMatricula({keepSerial:true});
+          state.techProfile=state.techProfile||{};
+          state.techProfile.cedula=id.value;
+          gs112MatriculaHint();
           if(typeof save==='function')save();
+        });
+        id.addEventListener('blur',()=>{
+          const current=String(document.getElementById('cm_retie_matricula')?.value||state.form?.cm_retie_matricula||'');
+          if(current)gs77SyncMatricula({keepSerial:true});
+          gs112MatriculaHint();
         });
       }
     }
@@ -2313,7 +2408,12 @@
 
   function gs77BindAddressRule(){
     const el=document.getElementById('reg_direccion');
-    if(!el||el.dataset.gs77AddressRule==='1')return;
+    if(!el)return;
+    el.readOnly=false;
+    el.disabled=false;
+    el.removeAttribute('readonly');
+    el.removeAttribute('disabled');
+    if(el.dataset.gs77AddressRule==='1')return;
     el.dataset.gs77AddressRule='1';
     const live=()=>{
       const v=addressTypingValue(el.value);
