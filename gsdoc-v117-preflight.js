@@ -22,7 +22,9 @@
     if(/^data:(image|application)\//i.test(s)) return '';
     if(/^JVBERi0/i.test(s) && s.length>5000) return '';
     if(s.length>MAX_CELL) s=s.slice(0,MAX_CELL);
-    return s;
+    // Regla v119: el Excel es la única salida donde el texto operativo
+    // se normaliza a MAYÚSCULAS.
+    return s.toLocaleUpperCase('es-CO');
   };
 
   function install(){
