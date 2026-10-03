@@ -160,7 +160,7 @@
       put('retie_constructor',v.techName);put('retie_const_identificacion',v.techCc);put('text_4vafa',v.f.retie_decl_num||'');
       put('retie_prof_constructor',v.prof);put('retie_matricula_const',v.matricula);put('retie_consejo',v.consejo);
       put('retie_direccion',v.direccion);put('retie_municipio',v.mpio);put('retie_departamento',v.depto);put('retie_fecha_construccion',v.construccion.fmt);
-      put('retie_solicitante',v.nombre);put('retie_identificacion',v.doc);put('retie_dia',v.fecha.dia);put('retie_mes',v.fecha.mes);put('tie_año',v.fecha.anio);put('retie_ciudad',v.mpio);
+      put('retie_solicitante',v.nombre);put('retie_identificacion',v.doc);put('retie_dia',v.fecha.dia);put('retie_mes',v.fecha.mes);put('retie_año',v.fecha.anio);put('retie_ciudad',v.mpio);
       put('retie_dir_constructor',addressCase(v.f.retie_dir_constructor||''));put('retie_cel_constructor',v.f.retie_cel_constructor||'');put('retie_correo_constructor',String(v.f.retie_correo_constructor||'').toLocaleLowerCase('es-CO'));
     }else if(kind==='EC'){
       put('ec_fecha',v.fecha.fmt);put('ec_usuario',v.nombre);put('ec_identificacion',v.doc);put('ec_direccion',dirSector);put('ec_municipio',v.mpio);
