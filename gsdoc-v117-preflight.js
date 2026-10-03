@@ -68,4 +68,24 @@
     const timer=setInterval(()=>{if(install())clearInterval(timer)},25);
     setTimeout(()=>clearInterval(timer),5000);
   }
+
+
+  // Protección contra sobrescribir al usuario anterior por reutilizar el mismo registro.
+  // Si ya se terminó/guardó un caso y se pulsa la navegación "Registrar",
+  // se usa el flujo interno de "Nuevo registro" en vez de reabrir el registro actual.
+  document.addEventListener('click',e=>{
+    const el=e.target?.closest?.('.nav,[data-go]');
+    if(!el) return;
+    const isRegister=el.dataset?.go==='register' || /^\+?\s*registrar$/i.test(String(el.textContent||'').trim());
+    if(!isRegister) return;
+    const screen=document.body.dataset.screen||'';
+    if(screen==='register'||screen==='jornada') return;
+    const saved=String(document.getElementById('savedSummary')?.textContent||'').trim();
+    const newBtn=document.getElementById('recordsNew')||document.getElementById('newRecordAfterSave');
+    if(saved && newBtn){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      newBtn.click();
+    }
+  },true);
 })();
