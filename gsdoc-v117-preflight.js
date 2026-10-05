@@ -29,9 +29,29 @@
       || excluded.has(s)
       || s==='_txt_selected' || s==='txt_selected';
   };
-  const cleanValue=v=>{
+  const normalizeHeader=h=>String(h||'').trim()
+    .toLocaleLowerCase('es-CO')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/&[#a-z0-9]+;/gi,'')
+    .replace(/[^a-z0-9]+/g,'_')
+    .replace(/^_+|_+$/g,'');
+
+  // Solo estas columnas salen en MAYÚSCULA en el Excel.
+  // Tipo Zona queda expresamente fuera de esta regla.
+  const uppercaseHeaders=new Set([
+    'orden_ro','orden',
+    'fecha_de_registro','fecha_registro',
+    'nombres','nombre',
+    'identificacion',
+    'contacto',
+    'direccion',
+    'localidad',
+    'sector_barrio','sector'
+  ]);
+
+  const cleanValue=(v,header='')=>{
     if(v==null) return '';
-    if(Array.isArray(v)) return cleanValue(v.join(' | '));
+    if(Array.isArray(v)) return cleanValue(v.join(' | '),header);
     if(typeof v==='object'){
       try{v=JSON.stringify(v)}catch(_){v=String(v)}
     }
@@ -39,9 +59,10 @@
     if(/^data:(image|application)\//i.test(s)) return '';
     if(/^JVBERi0/i.test(s) && s.length>5000) return '';
     if(s.length>MAX_CELL) s=s.slice(0,MAX_CELL);
-    // Regla v119: el Excel es la única salida donde el texto operativo
-    // se normaliza a MAYÚSCULAS.
-    return s.toLocaleUpperCase('es-CO');
+
+    return uppercaseHeaders.has(normalizeHeader(header))
+      ? s.toLocaleUpperCase('es-CO')
+      : s;
   };
 
   function install(){
@@ -55,7 +76,7 @@
         const out={};
         for(const [k,v] of Object.entries(row||{})){
           if(blockedHeader(k)) continue;
-          out[k]=cleanValue(v);
+          out[k]=cleanValue(v,k);
         }
         return out;
       });
