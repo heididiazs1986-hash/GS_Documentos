@@ -1,0 +1,63 @@
+/* GS Documentos v122 · firma multimodal + coordenadas manuales */
+.signature-source-panel{
+  margin:0 0 12px;
+  padding:12px;
+  border:1px solid #d7e8f7;
+  border-radius:14px;
+  background:#f7fbfe;
+}
+.signature-source-title{
+  margin-bottom:8px;
+  color:var(--blue);
+  font:700 12px/1.25 Manrope,sans-serif;
+}
+.signature-source-buttons{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+}
+.sig-source-btn{
+  min-height:42px;
+  padding:8px 7px;
+  border:1px solid #c7d9e8;
+  border-radius:11px;
+  background:#fff;
+  color:#36536d;
+  font:600 11px/1.2 Manrope,sans-serif;
+  cursor:pointer;
+}
+.sig-source-btn.active{
+  border-color:#4aaef0;
+  background:#eaf6ff;
+  color:#0b5f9a;
+  box-shadow:0 0 0 2px rgba(74,174,240,.10);
+}
+.signature-source-help{
+  margin-top:8px;
+  color:var(--muted);
+  font:400 10.5px/1.35 Manrope,sans-serif;
+}
+.coordinate-entry-help{
+  margin:7px 0 0;
+  padding:8px 10px;
+  border-radius:10px;
+  background:#f4f9fe;
+  border:1px solid #d7e8f7;
+  color:#58728a;
+  font:400 11px/1.35 Manrope,sans-serif;
+}
+.coordinate-entry-help b{color:#0b5f9a}
+.manual-coordinate{
+  background:#fff!important;
+  border-color:#9fc9e8!important;
+  cursor:text!important;
+}
+body.dark .signature-source-panel,
+body.dark .coordinate-entry-help{background:#22282d;border-color:#415666}
+body.dark .sig-source-btn{background:#282e33;border-color:#4b606f;color:#e6eef4}
+body.dark .sig-source-btn.active{background:#163b54;border-color:#4aaef0;color:#dff2ff}
+body.dark .manual-coordinate{background:#24282c!important}
+@media(max-width:520px){
+  .signature-source-buttons{grid-template-columns:1fr}
+  .sig-source-btn{min-height:44px;text-align:left;padding-left:13px}
+}
