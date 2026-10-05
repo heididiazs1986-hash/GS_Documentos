@@ -8,8 +8,25 @@
 
   const MAX_CELL=32000;
   const blockedHeader=h=>{
-    const s=String(h||'').toLowerCase().replace(/\s+/g,'_');
+    const raw=String(h||'').trim();
+    const s=raw.toLocaleLowerCase('es-CO')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/&[#a-z0-9]+;/gi,'')
+      .replace(/[^a-z0-9]+/g,'_')
+      .replace(/^_+|_+$/g,'');
+
+    const excluded=new Set([
+      'tratamiento_de_datos','tratamiento_datos',
+      'tecnico_gestor','tecnico_nombre',
+      'cedula_tecnico','tecnico_cedula',
+      'profesion_tecnico','tecnico_profesion',
+      'consejo_profesional','tecnico_consejo',
+      'matricula_profesional','tecnico_matricula',
+      'fecha_hora_creacion','fecha_hora_creacion_','fecha_creacion','fecha_hora_actualizacion'
+    ]);
+
     return /(^|_)(firma|signature|base64|dataurl|support|supports|soporte|soportes|foto|fotos|imagen|imagenes|archivo|archivos)($|_)/.test(s)
+      || excluded.has(s)
       || s==='_txt_selected' || s==='txt_selected';
   };
   const cleanValue=v=>{
