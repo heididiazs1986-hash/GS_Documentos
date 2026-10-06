@@ -49,9 +49,9 @@
     box.innerHTML=
       '<div class="signature-source-title">¿Cómo quieres agregar la firma?</div>'+
       '<div class="signature-source-buttons">'+
-        '<button type="button" class="sig-source-btn active" id="gs122Draw">✍️ Dibujar</button>'+
-        '<button type="button" class="sig-source-btn" id="gs122Upload">🖼️ Cargar imagen</button>'+
-        '<button type="button" class="sig-source-btn" id="gs122Camera">📷 Tomar foto</button>'+
+        '<button type="button" class="sig-source-btn active" id="gs122Draw"><svg class="sig-source-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 3.3 20.7 9.3 10.2 19.8 4.2 21.2 5.6 15.2 14.7 3.3Zm-7.1 12.9-1 3.2 3.2-.8-2.2-2.4Zm7.2-10.3L8.9 13.7l2.9 2.9 7.4-7.3-4.4-4.4Z"/></svg><span>Dibujar</span></button>'+
+        '<button type="button" class="sig-source-btn" id="gs122Upload"><svg class="sig-source-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4V4Zm2 2v9.2l3.8-3.8 3.1 3.1 2.2-2.2L18 15.2V6H6Zm10 1.5a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6Z"/></svg><span>Cargar imagen</span></button>'+
+        '<button type="button" class="sig-source-btn" id="gs122Camera"><svg class="sig-source-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.3 5 9.6 3h4.8l1.3 2H20a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h4.3ZM12 8a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6Z"/></svg><span>Tomar foto</span></button>'+
       '</div>'+
       '<div class="signature-source-help">La imagen se recorta, centra y limpia automáticamente. Solo se guarda la firma procesada.</div>'+
       '<input class="hidden-force" id="gs122SignatureFile" type="file" accept="image/png,image/jpeg,image/webp,image/*">'+
@@ -105,35 +105,37 @@
     const precision=q('#reg_precision');
     let help=q('#gs122CoordHelp');
 
-    if(!fromTxt){
-      lat.readOnly=false;lon.readOnly=false;
-      lat.removeAttribute('readonly');lon.removeAttribute('readonly');
-      lat.classList.add('manual-coordinate');
-      lon.classList.add('manual-coordinate');
-      lat.placeholder='Latitud (Y) · editable';
-      lon.placeholder='Longitud (X) · editable';
+    lat.readOnly=false;lon.readOnly=false;
+    lat.removeAttribute('readonly');lon.removeAttribute('readonly');
+    lat.classList.add('manual-coordinate');
+    lon.classList.add('manual-coordinate');
+    lat.placeholder='Latitud (Y) · editable';
+    lon.placeholder='Longitud (X) · editable';
 
-      if(!help){
-        help=document.createElement('div');
-        help.id='gs122CoordHelp';
-        help.className='coordinate-entry-help';
-        lon.closest('.gps-row')?.insertAdjacentElement('afterend',help);
-      }
-      if(help)help.innerHTML='<b>Ingreso manual habilitado.</b> Puedes escribir las coordenadas tomadas de las fotos o usar “Capturar GPS”.';
+    if(!help){
+      help=document.createElement('div');
+      help.id='gs122CoordHelp';
+      help.className='coordinate-entry-help';
+      lon.closest('.gps-row')?.insertAdjacentElement('afterend',help);
+    }
+    if(help){
+      help.innerHTML=fromTxt
+        ? '<b>Coordenadas precargadas desde el TXT.</b> Puedes corregirlas si no corresponden con la ubicación real.'
+        : '<b>Ingreso manual habilitado.</b> Puedes escribir las coordenadas tomadas de las fotos o usar “Capturar GPS”.';
+    }
 
-      if(lat.dataset.gs122!=='1'){
-        lat.dataset.gs122='1';
-        lat.addEventListener('blur',()=>normalizeCoordInput(lat,-90,90,'latitud'));
-      }
-      if(lon.dataset.gs122!=='1'){
-        lon.dataset.gs122='1';
-        lon.addEventListener('blur',()=>normalizeCoordInput(lon,-180,180,'longitud'));
-      }
-      if(precision)precision.placeholder='Precisión GPS (m) · automática';
-    }else{
-      lat.readOnly=true;lon.readOnly=true;
-      lat.classList.remove('manual-coordinate');lon.classList.remove('manual-coordinate');
-      if(help)help.innerHTML='<b>Coordenadas cargadas desde el TXT.</b> Se conservan bloqueadas para evitar cambios accidentales.';
+    if(lat.dataset.gs122!=='1'){
+      lat.dataset.gs122='1';
+      lat.addEventListener('blur',()=>normalizeCoordInput(lat,-90,90,'latitud'));
+    }
+    if(lon.dataset.gs122!=='1'){
+      lon.dataset.gs122='1';
+      lon.addEventListener('blur',()=>normalizeCoordInput(lon,-180,180,'longitud'));
+    }
+    if(precision){
+      precision.required=false;
+      precision.removeAttribute('required');
+      precision.placeholder='Precisión GPS (m) · opcional';
     }
   }
 
