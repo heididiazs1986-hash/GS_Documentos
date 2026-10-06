@@ -6,7 +6,7 @@ const els={
   zipInput:q('#zipInput'),drop:q('#dropzone'),workspace:q('#workspace'),openCard:q('#openCard'),
   status:q('#statusPill'),legacy:q('#legacyBadge'),master:q('#masterGrid'),tabs:q('#docTabs'),
   fields:q('#docFields'),title:q('#docTitle'),meta:q('#docMeta'),summary:q('#summary'),packageTitle:q('#packageTitle'),
-  save:q('#saveZipBtn'),reset:q('#resetBtn'),showTechnical:q('#showTechnical'),toast:q('#toast')
+  save:q('#saveZipBtn'),reset:q('#resetBtn'),toast:q('#toast')
 };
 const S={sourceFile:null,zip:null,entries:new Map(),docs:new Map(),manifest:null,master:{},active:null};
 
@@ -168,28 +168,39 @@ function renderMaster(){
 function renderTabs(){
  const docs=[...S.docs.values()].sort((a,b)=>DOC_ORDER.indexOf(a.type)-DOC_ORDER.indexOf(b.type));
  els.tabs.innerHTML='';
- docs.forEach(d=>{const b=document.createElement('button');b.className='doc-tab'+(S.active===d.type?' active':'');b.innerHTML=d.type+' <span class="count">'+d.fields.size+'</span>';b.onclick=()=>{S.active=d.type;renderTabs();renderActiveFields(true)};els.tabs.appendChild(b)});
+ docs.forEach(d=>{
+   const b=document.createElement('button');
+   b.className='doc-tab'+(S.active===d.type?' active':'');
+   b.innerHTML=d.type+' <span class="count">'+visibleFieldCount(d)+'</span>';
+   b.onclick=()=>{S.active=d.type;renderTabs();renderActiveFields(true)};
+   els.tabs.appendChild(b);
+ });
 }
 function editableLabel(doc,name){return friendly[name]||name}
-function isTechnical(name){return !friendly[name] && !linked.has(S.active+'|'+name)}
+function isAppField(docType,f){
+  if(!f || f.type==='checkbox' || f.type==='other')return false;
+  return !!friendly[f.name] || linked.has(docType+'|'+f.name);
+}
+function visibleFieldCount(d){
+  return [...d.fields.values()].filter(f=>isAppField(d.type,f)).length;
+}
 function renderActiveFields(scroll){
  const d=S.docs.get(S.active); if(!d)return;
- els.title.textContent=d.type;els.meta.textContent=d.path+' · '+d.pages+' pág. · '+d.fields.size+' campos de formulario';
+ const visible=visibleFieldCount(d);
+ els.title.textContent=d.type;
+ els.meta.textContent=d.path+' · '+d.pages+' pág. · '+visible+' campos editables de la app';
  els.fields.innerHTML='';
  [...d.fields.values()].forEach(f=>{
-   if(f.type==='other')return;
-   if(!els.showTechnical.checked && isTechnical(f.name))return;
+   if(!isAppField(d.type,f))return;
    const wrap=document.createElement('div');wrap.className='raw-field'+(linked.has(d.type+'|'+f.name)?' master-linked':'');
    const lab=document.createElement('label');lab.textContent=editableLabel(d.type,f.name);wrap.appendChild(lab);
    let input;
-   if(f.type==='checkbox'){
-     input=document.createElement('select');input.innerHTML='<option value="false">No / desmarcado</option><option value="true">Sí / marcado</option>';input.value=String(!!f.value);
-   }else if(f.type==='select'){
+   if(f.type==='select'){
      input=document.createElement('select');const opts=[...new Set(['',...(f.options||[]),f.value||''])];opts.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v||'—';input.appendChild(o)});input.value=f.value||'';
    }else{
      input=document.createElement((String(f.value).length>130)?'textarea':'input');input.value=f.value||'';
    }
-   input.oninput=()=>{f.value=f.type==='checkbox'?input.value==='true':input.value};
+   input.oninput=()=>{f.value=input.value};
    wrap.appendChild(input);
    const raw=document.createElement('div');raw.className='raw-name';raw.textContent=f.name+(linked.has(d.type+'|'+f.name)?' · vinculado a '+linked.get(d.type+'|'+f.name):'');wrap.appendChild(raw);
    els.fields.appendChild(wrap);
@@ -261,5 +272,5 @@ els.zipInput.onchange=()=>els.zipInput.files?.[0]&&openZip(els.zipInput.files[0]
 ['dragenter','dragover'].forEach(ev=>els.drop.addEventListener(ev,e=>{e.preventDefault();els.drop.classList.add('drag')}));
 ['dragleave','drop'].forEach(ev=>els.drop.addEventListener(ev,e=>{e.preventDefault();els.drop.classList.remove('drag')}));
 els.drop.addEventListener('drop',e=>{const f=[...e.dataTransfer.files].find(x=>/\.zip$/i.test(x.name));if(f)openZip(f);else toast('Selecciona un archivo ZIP')});
-els.save.onclick=saveZip;els.reset.onclick=reset;els.showTechnical.onchange=()=>renderActiveFields(false);
+els.save.onclick=saveZip;els.reset.onclick=reset;
 })();
