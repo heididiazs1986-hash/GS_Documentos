@@ -200,7 +200,20 @@ function renderActiveFields(scroll){
    }else{
      input=document.createElement((String(f.value).length>130)?'textarea':'input');input.value=f.value||'';
    }
-   input.oninput=()=>{f.value=input.value};
+   input.oninput=()=>{
+     f.value=f.type==='checkbox'?input.value==='true':input.value;
+     const key=linked.get(d.type+'|'+f.name);
+     if(key){
+       S.master[key]=key==='fechaConstruccion'?isoDate(f.value):f.value;
+       applyMaster(key);
+       renderMaster();
+       // Update siblings without rebuilding the focused document input.
+       els.fields.querySelectorAll('[data-field-name]').forEach(el=>{
+         if(el!==input)el.value=d.fields.get(el.dataset.fieldName)?.value??'';
+       });
+     }
+   };
+   input.dataset.fieldName=f.name;
    wrap.appendChild(input);
    const raw=document.createElement('div');raw.className='raw-name';raw.textContent=f.name+(linked.has(d.type+'|'+f.name)?' · vinculado a '+linked.get(d.type+'|'+f.name):'');wrap.appendChild(raw);
    els.fields.appendChild(wrap);
@@ -238,11 +251,24 @@ async function writeField(pdf,fieldModel){
  try{
    if(typeof field.setText==='function'){field.setText(String(fieldModel.value??''));return}
    if(typeof field.check==='function'){fieldModel.value?field.check():field.uncheck();return}
-   if(typeof field.select==='function' && fieldModel.value!==undefined && String(fieldModel.value)!==''){field.select(String(fieldModel.value));return}
- }catch(e){console.warn('No se pudo actualizar',fieldModel.name,e)}
+   if(typeof field.select==='function'){
+     const value=String(fieldModel.value??'');
+     if(value!=='')field.select(value);
+     else if(typeof field.clear==='function')field.clear();
+     else if(typeof field.clearSelected==='function')field.clearSelected();
+     else throw new Error('El campo no permite borrar la selección');
+     return;
+   }
+ }catch(e){throw new Error('No se pudo actualizar '+fieldModel.name+': '+e.message)}
 }
 async function saveZip(){
  try{
+   for(const [key,limit] of [['latitud',90],['longitud',180]]){
+     const value=String(S.master[key]??'').trim().replace(',','.');
+     if(value && (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value)||!Number.isFinite(Number(value))||Math.abs(Number(value))>limit))
+       throw new Error(key==='latitud'?'Latitud inválida':'Longitud inválida');
+     S.master[key]=value;
+   }
    els.save.disabled=true;els.save.textContent='Generando…';Object.keys(S.master).forEach(applyMaster);
    const out=new JSZip();
    for(const [path,bytes] of S.entries){

@@ -1,0 +1,33 @@
+{
+  "name": "gs_documentos",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "test:browser": "node --test tests/pr1.browser.cjs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/heididiazs1986-hash/GS_Documentos.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/heididiazs1986-hash/GS_Documentos/issues"
+  },
+  "homepage": "https://github.com/heididiazs1986-hash/GS_Documentos#readme",
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "jszip": "^3.10.1",
+    "pdf-lib": "^1.17.1",
+    "playwright": "^1.58.2",
+    "xlsx": "^0.18.5"
+  },
+  "private": true
+}

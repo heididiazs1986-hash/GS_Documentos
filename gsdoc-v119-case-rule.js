@@ -4,6 +4,12 @@
   if(globalThis.__GS_DOCS_V119_CASE_RULE__) return;
   globalThis.__GS_DOCS_V119_CASE_RULE__=true;
 
+  // The v77 normalizer is exported as normalizeAddress by its private module.
+  // Share the alias used by the base app and this presentation add-on.
+  if(typeof globalThis.gs77NormalizeAddress!=='function' && typeof globalThis.normalizeAddress==='function'){
+    globalThis.gs77NormalizeAddress=globalThis.normalizeAddress;
+  }
+
   const trimText=v=>String(v??'').replace(/[ \t]{2,}/g,' ');
   const cleanText=v=>String(v??'').trim().replace(/\s+/g,' ');
 

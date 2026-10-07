@@ -1,0 +1,22 @@
+name: GS Documentos regression checks
+on:
+  pull_request:
+  push:
+    branches: [main, editor-pc-v1]
+permissions:
+  contents: read
+jobs:
+  regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+      - run: node --check app.js && node --check editor-pc/editor.js && node --check gsdoc-v122-signature-gps.js && git diff --check
