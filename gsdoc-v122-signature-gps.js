@@ -83,19 +83,70 @@
     }
   }
 
-  function normalizeCoordInput(el,min,max,key){
-    if(!el)return;
-    const raw=String(el.value||'').trim().replace(',','.');
-    if(!raw){state.registration[key]='';save();return}
+  function coordinateValue(value,min,max){
+    const raw=String(value??'').trim().replace(',','.');
+    if(!raw)return '';
+    if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(raw))return null;
     const n=Number(raw);
-    if(!Number.isFinite(n)||n<min||n>max){
-      toast(key==='latitud'?'Latitud inválida':'Longitud inválida');
-      return;
+    return Number.isFinite(n)&&n>=min&&n<=max?raw:null;
+  }
+
+  function normalizeCoordInput(el,min,max,key,notify=true){
+    if(!el)return;
+    const raw=coordinateValue(el.value,min,max);
+    const message=key==='latitud'?'Latitud inválida':'Longitud inválida';
+    el.setCustomValidity(raw===null?message:'');
+    if(raw===null){
+      // Keep the correction visible, but never persist invalid coordinates.
+      state.registration[key]='';
+      save();
+      if(notify)toast(message);
+      return false;
     }
     el.value=raw;
     state.registration[key]=raw;
     save();
+    return true;
   }
+
+  function assertCoordinates(record){
+    for(const [key,min,max] of [['latitud',-90,90],['longitud',-180,180]]){
+      if(coordinateValue(record?.[key],min,max)===null)
+        throw new Error(key==='latitud'?'Latitud inválida':'Longitud inválida');
+    }
+  }
+
+  function validateCoordinates(registrationOnly=false){
+    try{
+      for(const id of ['#reg_lat','#reg_lon']){
+        const el=q(id);
+        if(el && !el.checkValidity())throw new Error(el.validationMessage);
+      }
+      assertCoordinates(state.registration);
+      if(!registrationOnly){
+        assertCoordinates(state.currentRecord);
+        assertCoordinates({latitud:state.form?.e1_coord_y,longitud:state.form?.e1_coord_x});
+      }
+      return true;
+    }catch(e){toast(e.message);return false}
+  }
+
+  // Guard both interactive validation and exports of previously stored records.
+  const oldValidateStep=validateStep;
+  validateStep=function(step){return (step!==5||validateCoordinates(true))&&oldValidateStep.apply(this,arguments)};
+  const oldValidateRegistration=validateRegistration;
+  validateRegistration=function(){return validateCoordinates(true)&&oldValidateRegistration.apply(this,arguments)};
+  const oldValidateRequired=validateRequired;
+  validateRequired=function(){return validateCoordinates()&&oldValidateRequired.apply(this,arguments)};
+  const oldMakePDF=makePDF;
+  makePDF=function(){
+    if(!validateCoordinates())return Promise.reject(new Error('Corrige las coordenadas antes de generar documentos'));
+    return oldMakePDF.apply(this,arguments);
+  };
+  const oldBuildExcelBytes=buildExcelBytes;
+  buildExcelBytes=function(rows){rows.forEach(assertCoordinates);return oldBuildExcelBytes.apply(this,arguments)};
+  const oldJsonRecord=jsonRecord;
+  jsonRecord=function(record){assertCoordinates(record);return oldJsonRecord.apply(this,arguments)};
 
   function enhanceManualCoordinates(){
     const lat=q('#reg_lat'),lon=q('#reg_lon');
@@ -126,11 +177,13 @@
 
     if(lat.dataset.gs122!=='1'){
       lat.dataset.gs122='1';
-      lat.addEventListener('blur',()=>normalizeCoordInput(lat,-90,90,'latitud'));
+      lat.oninput=lat.onchange=()=>normalizeCoordInput(lat,-90,90,'latitud',false);
+      lat.onblur=()=>normalizeCoordInput(lat,-90,90,'latitud');
     }
     if(lon.dataset.gs122!=='1'){
       lon.dataset.gs122='1';
-      lon.addEventListener('blur',()=>normalizeCoordInput(lon,-180,180,'longitud'));
+      lon.oninput=lon.onchange=()=>normalizeCoordInput(lon,-180,180,'longitud',false);
+      lon.onblur=()=>normalizeCoordInput(lon,-180,180,'longitud');
     }
     if(precision){
       precision.required=false;
