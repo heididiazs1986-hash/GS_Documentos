@@ -1,0 +1,62 @@
+/* GS Documentos v123 · observación copiable */
+.gs123-observation-card{
+  margin:14px 0 4px;
+  padding:13px;
+  border:1px solid #d8e6f1;
+  border-radius:14px;
+  background:#f8fbfe;
+}
+.gs123-observation-head{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:9px;
+}
+.gs123-observation-head>div{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.gs123-observation-head b{
+  color:var(--blue);
+  font:700 13px/1.2 Manrope,sans-serif;
+}
+.gs123-observation-head span{
+  color:var(--muted);
+  font:400 10.5px/1.25 Manrope,sans-serif;
+}
+.gs123-copy{
+  flex:0 0 auto;
+  min-height:38px!important;
+  padding:8px 12px!important;
+}
+.gs123-observation-text{
+  width:100%;
+  min-height:150px;
+  box-sizing:border-box;
+  resize:vertical;
+  border:1px solid #bfd7ea;
+  border-radius:12px;
+  background:#fff;
+  color:var(--ink);
+  padding:11px 12px;
+  font:500 12.5px/1.45 Manrope,sans-serif;
+}
+.gs123-observation-text:focus{
+  outline:none;
+  border-color:#4aaef0;
+  box-shadow:0 0 0 3px rgba(74,174,240,.11);
+}
+.gs123-observation-help{
+  margin-top:6px;
+  color:var(--muted);
+  font:400 10.5px/1.35 Manrope,sans-serif;
+}
+body.dark .gs123-observation-card{background:#22282d;border-color:#415666}
+body.dark .gs123-observation-text{background:#24282c;border-color:#4b606f;color:#f1f5f8}
+@media(max-width:520px){
+  .gs123-observation-head{align-items:stretch;flex-direction:column}
+  .gs123-copy{width:100%}
+}
