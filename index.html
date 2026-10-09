@@ -6,20 +6,20 @@
   <meta name="theme-color" content="#FF6600">
   <meta name="color-scheme" content="light dark">
   <title>GS Documentos</title>
-  <link rel="manifest" href="./manifest.json?v=gsdoc-v123-observation">
-  <link rel="icon" type="image/png" sizes="192x192" href="./gs-docs-icon-192.png?v=gsdoc-v123-observation">
-  <link rel="apple-touch-icon" href="./gs-docs-icon-192.png?v=gsdoc-v123-observation">
+  <link rel="manifest" href="./manifest.json?v=gsdoc-v124-observation-coords">
+  <link rel="icon" type="image/png" sizes="192x192" href="./gs-docs-icon-192.png?v=gsdoc-v124-observation-coords">
+  <link rel="apple-touch-icon" href="./gs-docs-icon-192.png?v=gsdoc-v124-observation-coords">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Open+Sans:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=gsdoc-v123-observation">
-  <link rel="stylesheet" href="./gsdoc-v116-hotfix.css?v=gsdoc-v123-observation">
-  <link rel="stylesheet" href="./gsdoc-v122-signature-gps.css?v=gsdoc-v123-observation">
-  <link rel="stylesheet" href="./gsdoc-v123-observation.css?v=gsdoc-v123-observation">
+  <link rel="stylesheet" href="./styles.css?v=gsdoc-v124-observation-coords">
+  <link rel="stylesheet" href="./gsdoc-v116-hotfix.css?v=gsdoc-v124-observation-coords">
+  <link rel="stylesheet" href="./gsdoc-v122-signature-gps.css?v=gsdoc-v124-observation-coords">
+  <link rel="stylesheet" href="./gsdoc-v124-observation-coords.css?v=gsdoc-v124-observation-coords">
   <link rel="stylesheet" href="./gsdoc-v122-field-tools.css?v=gsdoc-v122-field-tools">\n</head>
 <body>
 
-<header class="top"><div class="head"><img alt="GS Documentos" class="logo-img" src="./gs-docs-icon-192.png?v=gsdoc-v123-observation"/><div class="brand-copy"><div class="title">GS Documentos</div><div class="sub">Documentación técnica en campo</div></div><div class="head-actions"><button aria-label="Cambiar tema" class="theme" id="themeBtn" type="button">🌙</button></div></div></header>
+<header class="top"><div class="head"><img alt="GS Documentos" class="logo-img" src="./gs-docs-icon-192.png?v=gsdoc-v124-observation-coords"/><div class="brand-copy"><div class="title">GS Documentos</div><div class="sub">Documentación técnica en campo</div></div><div class="head-actions"><button aria-label="Cambiar tema" class="theme" id="themeBtn" type="button">🌙</button></div></div></header>
 <div id="app">
 <section class="screen" id="jornada"><div class="card registration-card"><h2>Inicio de jornada</h2><p class="help">Los datos del técnico se capturan una sola vez y se reutilizan durante toda la jornada.</p><div class="reg-grid"><div class="reg-field full"><label>Contrato / aliado estratégico <span class="req">*</span></label><select id="jornada_contrato"><option value="">Seleccione…</option><option value="APPLUS">APPLUS+</option><option value="INMEL">INMEL Ingeniería S.A.S.</option></select></div><div class="reg-field full"><label>Nombre del técnico / gestor <span class="req">*</span></label><input autocomplete="name" id="jornada_nombre"/></div><div class="reg-field"><label>Firma del técnico <span class="req">*</span></label><div class="jornada-sign-preview" id="jornadaFirmaStatus"><span>Pendiente</span></div></div></div><div class="actions"><button class="btn secondary" id="jornadaFirma">✍️ Capturar firma</button><button class="btn" id="jornadaStart">Iniciar jornada</button><button class="btn ghost hidden-force" id="jornadaPrevious">📦 Exportar jornada anterior</button></div></div></section>
 <section class="screen active" id="register"><div class="card registration-card">
@@ -63,12 +63,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="./gsdoc-v117-preflight.js?v=gsdoc-v123-observation"></script>
-<script src="./app.js?v=gsdoc-v123-observation"></script>
-<script src="./gsdoc-v116-hotfix.js?v=gsdoc-v123-observation"></script>
-<script src="./gsdoc-v118-presentation.js?v=gsdoc-v123-observation"></script>
-<script src="./gsdoc-v119-case-rule.js?v=gsdoc-v123-observation"></script>
-<script src="./gsdoc-v122-signature-gps.js?v=gsdoc-v123-observation"></script>
-<script src="./gsdoc-v123-observation.js?v=gsdoc-v123-observation"></script>
+<script src="./gsdoc-v117-preflight.js?v=gsdoc-v124-observation-coords"></script>
+<script src="./app.js?v=gsdoc-v124-observation-coords"></script>
+<script src="./gsdoc-v116-hotfix.js?v=gsdoc-v124-observation-coords"></script>
+<script src="./gsdoc-v118-presentation.js?v=gsdoc-v124-observation-coords"></script>
+<script src="./gsdoc-v119-case-rule.js?v=gsdoc-v124-observation-coords"></script>
+<script src="./gsdoc-v122-signature-gps.js?v=gsdoc-v124-observation-coords"></script>
+<script src="./gsdoc-v124-observation-coords.js?v=gsdoc-v124-observation-coords"></script>
 </body>
 </html>
