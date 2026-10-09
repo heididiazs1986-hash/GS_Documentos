@@ -19,6 +19,8 @@
     const direccion=upper(rec.direccion||state.form?.cm_dir_radica||'');
     const sector=upper(rec.sector||state.form?.cm_sector||'');
     const localidad=upper(rec.localidad||state.form?.cm_localidad||'');
+    const latitud=String(rec.latitud||state.registration?.latitud||state.form?.e1_coord_y||'').trim().replace(',','.');
+    const longitud=String(rec.longitud||state.registration?.longitud||state.form?.e1_coord_x||'').trim().replace(',','.');
 
     const partes=[
       'ORDEN PARA DIAGNÓSTICO DE PREDIOS ESPT.',
@@ -30,6 +32,7 @@
       nombre ? 'USUARIO: '+nombre+'.' : '',
       cc ? 'C.C.: '+cc+'.' : '',
       celular ? 'CELULAR: '+celular+'.' : '',
+      (latitud||longitud) ? 'COORDENADAS: LAT '+(latitud||'—')+', LONG '+(longitud||'—')+'.' : '',
       'DOCUMENTACIÓN SE ENCUENTRA AL DÍA.',
       'LAS CONDICIONES DEL PREDIO E INSTALACIONES INTERNAS CUMPLEN NORMA VIGENTE PARA REALIZAR OBRA.',
       'SE ANEXA REGISTRO FOTOGRÁFICO.'
@@ -68,7 +71,7 @@
         '<button type="button" class="btn secondary gs123-copy">📋 Copiar</button>'+
       '</div>'+
       '<textarea class="gs123-observation-text" rows="7" spellcheck="true"></textarea>'+
-      '<div class="gs123-observation-help">Se genera automáticamente con RO/orden, usuario, cédula, celular, dirección, sector y localidad. Puedes editarla antes de copiar.</div>';
+      '<div class="gs123-observation-help">Se genera automáticamente con RO/orden, usuario, cédula, celular, dirección, sector, localidad y coordenadas. Puedes editarla antes de copiar.</div>';
     wrap.querySelector('.gs123-copy').onclick=()=>copyObservation(wrap.querySelector('textarea'));
     return wrap;
   }
