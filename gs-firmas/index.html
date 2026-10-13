@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b4f7c">
   <title>GS Firmas</title>
   <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=3">
 </head>
 <body>
 <header class="topbar">
@@ -36,12 +36,12 @@
       </div>
     </div>
 
-    <input id="pdfInput" type="file" accept="application/pdf,.pdf" hidden>
-    <div class="dropzone" id="dropzone" role="button" tabindex="0" aria-label="Seleccionar documento PDF">
+    <label class="dropzone" id="dropzone" for="pdfInput">
       <span class="drop-icon">PDF</span>
-      <strong>Seleccionar documento</strong>
-      <small>Toca aquí para buscar el PDF o arrástralo desde tu equipo</small>
-    </div>
+      <strong>Cargar documento PDF</strong>
+      <small>Toca aquí o usa el selector de archivo que aparece debajo</small>
+    </label>
+    <input id="pdfInput" class="file-picker" type="file" accept=".pdf,application/pdf">
 
     <div id="fileMeta" class="file-meta hidden"></div>
   </section>
@@ -95,7 +95,15 @@
 
 <div class="toast" id="toast"></div>
 
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
+  }
+  if ('caches' in window) {
+    caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('gs-firmas-')).map(k=>caches.delete(k)))).catch(()=>{});
+  }
+</script>
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script src="./app.js"></script>
+<script src="./app.js?v=3"></script>
 </body>
 </html>
