@@ -6,7 +6,7 @@ const els={
   zipInput:q('#zipInput'),drop:q('#dropzone'),workspace:q('#workspace'),openCard:q('#openCard'),
   status:q('#statusPill'),legacy:q('#legacyBadge'),master:q('#masterGrid'),tabs:q('#docTabs'),
   fields:q('#docFields'),title:q('#docTitle'),meta:q('#docMeta'),summary:q('#summary'),packageTitle:q('#packageTitle'),
-  save:q('#saveZipBtn'),reset:q('#resetBtn'),toast:q('#toast')
+  save:q('#saveZipBtn'),toast:q('#toast')
 };
 const S={sourceFile:null,zip:null,entries:new Map(),docs:new Map(),manifest:null,master:{},active:null};
 
@@ -40,8 +40,7 @@ const masterDefs=[
  ['consejo','Consejo','text'],
  ['matricula','Matrícula profesional','text','full'],
  ['fechaConstruccion','Fecha inicio construcción','date','full'],
- ['observaciones','Observaciones / hallazgos','textarea','full'],
- ['idInterno','ID interno','readonly','full']
+ ['observaciones','Observaciones / hallazgos','textarea','full']
 ];
 const linked=new Map();
 const friendly={
@@ -367,5 +366,5 @@ els.zipInput.onchange=()=>els.zipInput.files?.[0]&&openZip(els.zipInput.files[0]
 ['dragenter','dragover'].forEach(ev=>els.drop.addEventListener(ev,e=>{e.preventDefault();els.drop.classList.add('drag')}));
 ['dragleave','drop'].forEach(ev=>els.drop.addEventListener(ev,e=>{e.preventDefault();els.drop.classList.remove('drag')}));
 els.drop.addEventListener('drop',e=>{const f=[...e.dataTransfer.files].find(x=>/\.zip$/i.test(x.name));if(f)openZip(f);else toast('Selecciona un archivo ZIP')});
-els.save.onclick=saveZip;els.reset.onclick=reset;
+els.save.onclick=saveZip;
 })();
