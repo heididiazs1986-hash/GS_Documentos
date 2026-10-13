@@ -1,4 +1,4 @@
-const CACHE='gs-firmas-v1';
+const CACHE='gs-firmas-v2';
 const APP=['./','./index.html','./styles.css','./app.js','./manifest.json'];
 
 self.addEventListener('install',event=>{
@@ -15,11 +15,13 @@ self.addEventListener('activate',event=>{
 
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
+  const url=new URL(event.request.url);
+  if(url.origin!==self.location.origin)return;
   event.respondWith(
-    caches.match(event.request).then(hit=>hit || fetch(event.request).then(res=>{
+    fetch(event.request).then(res=>{
       const copy=res.clone();
       caches.open(CACHE).then(c=>c.put(event.request,copy)).catch(()=>{});
       return res;
-    }))
+    }).catch(()=>caches.match(event.request).then(hit=>hit||caches.match('./index.html')))
   );
 });
