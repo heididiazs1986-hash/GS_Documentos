@@ -11,6 +11,15 @@ const els={
 const S={sourceFile:null,zip:null,entries:new Map(),docs:new Map(),manifest:null,master:{},active:null};
 
 const DOC_ORDER=['TD','E1','E6','AR','DJ','RETIE','EC'];
+const DOC_LABELS={
+  TD:'Tratamiento de datos',
+  E1:'Solicitud de servicio',
+  E6:'Recibo técnico',
+  AR:'Aceptación de requisitos',
+  DJ:'Declaración juramentada',
+  RETIE:'RETIE',
+  EC:'Esquema constructivo'
+};
 const masterDefs=[
  ['orden','Orden RO','text'],
  ['nombre','Nombre del usuario','text'],
@@ -182,7 +191,7 @@ function renderTabs(){
  docs.forEach(d=>{
    const b=document.createElement('button');
    b.className='doc-tab'+(S.active===d.type?' active':'');
-   b.innerHTML=d.type+' <span class="count">'+visibleFieldCount(d)+'</span>';
+   b.innerHTML=d.type+' · '+(DOC_LABELS[d.type]||d.type)+' <span class="count">'+visibleFieldCount(d)+'</span>';
    b.onclick=()=>{S.active=d.type;renderTabs();renderActiveFields(true)};
    els.tabs.appendChild(b);
  });
@@ -201,7 +210,7 @@ function visibleFieldCount(d){
 function renderActiveFields(scroll){
  const d=S.docs.get(S.active); if(!d)return;
  const visible=visibleFieldCount(d);
- els.title.textContent=d.type;
+ els.title.textContent=d.type+' · '+(DOC_LABELS[d.type]||d.type);
  els.meta.textContent=d.path+' · '+d.pages+' pág. · '+visible+' campos específicos';
  els.fields.innerHTML='';
 
