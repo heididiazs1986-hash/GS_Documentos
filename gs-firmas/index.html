@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#FF6600">
   <title>GS Firmas · Firma documental ESPT</title>
   <link rel="icon" href="/gs-firmas/app-icon.svg">
-  <link rel="stylesheet" href="/gs-firmas/styles.css?v=9">
+  <link rel="stylesheet" href="/gs-firmas/styles.css?v=10">
 </head>
 <body>
 <header class="topbar">
@@ -71,7 +71,18 @@
       <span class="legacy-badge ok">E1 · E6 · AR · DJ · TD</span>
     </div>
 
-    <p class="hint">La persona identificada en los documentos debe realizar su propia firma. Puedes limpiar y repetir el trazo antes de generar el archivo.</p>
+    <p class="hint">La persona identificada en los documentos debe realizar su propia firma.</p>
+
+    <div class="signature-source-panel">
+      <div class="signature-source-title">¿Cómo quieres agregar la firma?</div>
+      <div class="signature-source-buttons">
+        <button type="button" class="sig-source-btn active" id="sigDrawBtn">✍️ Dibujar</button>
+        <button type="button" class="sig-source-btn" id="sigUploadBtn">🖼️ Cargar imagen</button>
+        <button type="button" class="sig-source-btn" id="sigCameraBtn">📷 Tomar foto</button>
+      </div>
+      <input id="sigImageInput" type="file" accept="image/png,image/jpeg,image/webp,image/*" hidden>
+      <input id="sigCameraInput" type="file" accept="image/*" capture="environment" hidden>
+    </div>
 
     <div class="signature-frame">
       <canvas id="signatureCanvas"></canvas>
@@ -80,7 +91,7 @@
 
     <div class="signature-actions">
       <button class="btn secondary" id="clearBtn" type="button">Limpiar firma dibujada</button>
-      <button class="btn primary" id="generateBtn" type="button" disabled>GENERAR PDF FIRMADO</button>
+      <button class="btn primary" id="generateBtn" type="button" disabled>Generar documentos firmados</button>
     </div>
   </section>
 </main>
@@ -88,6 +99,6 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script src="/gs-firmas/app.js?v=9"></script>
+<script src="/gs-firmas/app.js?v=10"></script>
 </body>
 </html>

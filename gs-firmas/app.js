@@ -17,6 +17,7 @@ let analysis=null;
 let generatedUrl=null;
 let drawing=false;
 let hasInk=false;
+let signatureMode='draw';
 
 function toast(msg){
   const el=$('#toast');
@@ -263,6 +264,114 @@ async function loadFile(file){
   }
 }
 
+
+function markSignatureMode(mode){
+  signatureMode=mode;
+  const map={draw:'#sigDrawBtn',upload:'#sigUploadBtn',camera:'#sigCameraBtn'};
+  Object.entries(map).forEach(([key,sel])=>{
+    const btn=$(sel);
+    if(btn)btn.classList.toggle('active',key===mode);
+  });
+}
+
+function fileToDataURL(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(String(reader.result||''));
+    reader.onerror=()=>reject(reader.error||new Error('No se pudo leer la imagen'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function normalizeSignatureImage(file){
+  if(!file)return;
+  if(!String(file.type||'').startsWith('image/')){
+    toast('Selecciona una imagen de firma');
+    return;
+  }
+  if(file.size>15*1024*1024){
+    toast('La imagen es demasiado pesada. Usa una menor de 15 MB');
+    return;
+  }
+
+  const src=await fileToDataURL(file);
+  const img=new Image();
+
+  await new Promise((resolve,reject)=>{
+    img.onload=resolve;
+    img.onerror=()=>reject(new Error('No se pudo abrir la imagen'));
+    img.src=src;
+  });
+
+  const maxSide=1600;
+  const scale=Math.min(1,maxSide/Math.max(img.naturalWidth||img.width,img.naturalHeight||img.height));
+  const w=Math.max(1,Math.round((img.naturalWidth||img.width)*scale));
+  const h=Math.max(1,Math.round((img.naturalHeight||img.height)*scale));
+
+  const tmp=document.createElement('canvas');
+  tmp.width=w;tmp.height=h;
+  const tctx=tmp.getContext('2d',{willReadFrequently:true});
+  tctx.drawImage(img,0,0,w,h);
+
+  const data=tctx.getImageData(0,0,w,h);
+  const px=data.data;
+  let minX=w,minY=h,maxX=-1,maxY=-1;
+
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const i=(y*w+x)*4;
+      const r=px[i],g=px[i+1],b=px[i+2],a=px[i+3];
+      const max=Math.max(r,g,b),min=Math.min(r,g,b);
+      const nearWhite=a<10 || (r>235&&g>235&&b>235&&max-min<18);
+
+      if(nearWhite){
+        px[i+3]=0;
+      }else{
+        // Conserva el trazo, elimina fondo claro y mejora contraste suavemente.
+        const lum=(r+g+b)/3;
+        if(lum>215 && max-min<24){
+          px[i+3]=Math.max(0,Math.round((235-lum)*10));
+        }
+        if(px[i+3]>18){
+          if(x<minX)minX=x;if(x>maxX)maxX=x;
+          if(y<minY)minY=y;if(y>maxY)maxY=y;
+        }
+      }
+    }
+  }
+
+  if(maxX<0)throw new Error('No se detectó una firma en la imagen');
+  tctx.putImageData(data,0,0);
+
+  const pad=Math.max(8,Math.round(Math.min(w,h)*.03));
+  minX=Math.max(0,minX-pad);minY=Math.max(0,minY-pad);
+  maxX=Math.min(w-1,maxX+pad);maxY=Math.min(h-1,maxY+pad);
+
+  const crop=document.createElement('canvas');
+  crop.width=maxX-minX+1;crop.height=maxY-minY+1;
+  crop.getContext('2d').drawImage(tmp,minX,minY,crop.width,crop.height,0,0,crop.width,crop.height);
+
+  const canvas=$('#signatureCanvas');
+  const box=canvas.parentElement;
+  const ratio=Math.max(1,window.devicePixelRatio||1);
+  canvas.width=Math.round(box.clientWidth*ratio);
+  canvas.height=Math.round(box.clientHeight*ratio);
+  const ctx=canvas.getContext('2d');
+  ctx.setTransform(ratio,0,0,ratio,0,0);
+  ctx.clearRect(0,0,box.clientWidth,box.clientHeight);
+
+  const availW=box.clientWidth*0.82;
+  const availH=box.clientHeight*0.72;
+  const fit=Math.min(availW/crop.width,availH/crop.height);
+  const dw=crop.width*fit,dh=crop.height*fit;
+  ctx.drawImage(crop,(box.clientWidth-dw)/2,(box.clientHeight-dh)/2,dw,dh);
+
+  hasInk=true;
+  $('#signHint').style.display='none';
+  $('#generateBtn').disabled=false;
+  toast('Firma preparada. Revisa antes de generar.');
+}
+
 function resizeCanvas(){
   const canvas=$('#signatureCanvas');
   const box=canvas.parentElement;
@@ -464,7 +573,7 @@ async function generate(){
     setStatus('Error al generar');
     toast('No fue posible generar el PDF: '+(err?.message||'error desconocido'));
   }finally{
-    btn.textContent='GENERAR PDF FIRMADO';
+    btn.textContent='Generar documentos firmados';
     btn.disabled=!hasInk;
   }
 }
@@ -478,6 +587,7 @@ function resetAll(){
   $('#signCard').classList.add('hidden');
   $('#validationBadge').classList.remove('ok');
   clearSignature();
+  markSignatureMode('draw');
   setStatus('Sin PDF abierto');
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -502,6 +612,37 @@ function bind(){
   c.addEventListener('pointerleave',endDraw);
 
   $('#clearBtn').onclick=clearSignature;
+
+  $('#sigDrawBtn').onclick=()=>{
+    markSignatureMode('draw');
+    clearSignature();
+    setTimeout(resizeCanvas,30);
+  };
+
+  $('#sigUploadBtn').onclick=()=>{
+    markSignatureMode('upload');
+    const input=$('#sigImageInput');
+    input.value='';
+    input.click();
+  };
+
+  $('#sigCameraBtn').onclick=()=>{
+    markSignatureMode('camera');
+    const input=$('#sigCameraInput');
+    input.value='';
+    input.click();
+  };
+
+  $('#sigImageInput').onchange=async e=>{
+    try{await normalizeSignatureImage(e.target.files?.[0])}
+    catch(err){console.error(err);toast(err?.message||'No fue posible procesar la firma')}
+  };
+
+  $('#sigCameraInput').onchange=async e=>{
+    try{await normalizeSignatureImage(e.target.files?.[0])}
+    catch(err){console.error(err);toast(err?.message||'No fue posible procesar la firma')}
+  };
+
   $('#generateBtn').onclick=generate;
   window.addEventListener('resize',()=>setTimeout(resizeCanvas,80));
 }
