@@ -140,6 +140,7 @@ async function loadPdf(path,bytes){
 function deriveMaster(){
  const manifest=S.manifest?.master||{};
  S.master={
+   proyecto:manifest.proyecto||firstValue('E6',['text_1xogj'])||'',
    orden:manifest.orden||firstValue('TD',['orden_ro'])||firstValue('E1',['No de solicitud']),
    nombre:manifest.nombre||firstValue('TD',['usuario'])||firstValue('E1',['1 Nombre o Razón Social'])||firstValue('DJ',['Nombre solicitante']),
    cedula:manifest.cedula||firstValue('TD',['cedula'])||firstValue('E1',['4 Número de Documento']),
@@ -158,7 +159,8 @@ function deriveMaster(){
    consejo:manifest.consejo||firstValue('RETIE',['retie_consejo']),
    matricula:manifest.matricula||firstValue('RETIE',['retie_matricula_const'])||firstValue('EC',['ec_matricula']),
    fechaConstruccion:manifest.fechaConstruccion||isoDate(firstValue('RETIE',['retie_fecha_construccion']))||'',
-   observaciones:manifest.observaciones||firstValue('TD',['observaciones'])
+   observaciones:manifest.observaciones||firstValue('TD',['observaciones']),
+   idInterno:manifest.idInterno||firstValue('TD',['text_331i7n'])
  };
 }
 function applyMaster(key){
