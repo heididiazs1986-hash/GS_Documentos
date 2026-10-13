@@ -248,6 +248,47 @@ function renderActiveFields(scroll){
  }
  if(scroll)els.fields.scrollIntoView({behavior:'smooth',block:'start'});
 }
+
+function renderSpecificField(docType,f){
+ const wrap=document.createElement('div');wrap.className='raw-field';
+ const lab=document.createElement('label');lab.textContent=editableLabel(docType,f.name);wrap.appendChild(lab);
+ let input;
+ if(f.type==='select'){
+   input=document.createElement('select');
+   const opts=[...new Set(['',...(f.options||[]),f.value||''])];
+   opts.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v||'—';input.appendChild(o)});
+   input.value=f.value||'';
+ }else{
+   input=document.createElement((String(f.value).length>130)?'textarea':'input');
+   input.value=f.value||'';
+ }
+ input.oninput=()=>{f.value=input.value};
+ wrap.appendChild(input);
+ return wrap;
+}
+renderTabs=function(){els.tabs.innerHTML='';};
+renderActiveFields=function(scroll){
+ els.fields.innerHTML='';
+ for(const [type,label] of [['E6','Recibo técnico'],['DJ','Declaración juramentada']]){
+   const d=S.docs.get(type); if(!d)continue;
+   const section=document.createElement('section');section.className='specific-doc-section';
+   const head=document.createElement('div');head.className='specific-doc-head';
+   head.innerHTML='<span class="doc-code-pill">'+type+'</span><strong>'+label+'</strong>';
+   section.appendChild(head);
+   const grid=document.createElement('div');grid.className='specific-field-grid';
+   const fields=[...d.fields.values()].filter(x=>isSpecificAppField(type,x) && x.name!=='text_331i7n');
+   if(!fields.length){
+     const empty=document.createElement('div');empty.className='empty-specific';
+     empty.innerHTML='<strong>Sin campos adicionales</strong><span>Todos los datos se controlan desde Registro general.</span>';
+     grid.appendChild(empty);
+   }else{
+     fields.forEach(x=>grid.appendChild(renderSpecificField(type,x)));
+   }
+   section.appendChild(grid);els.fields.appendChild(section);
+ }
+ if(scroll)els.fields.scrollIntoView({behavior:'smooth',block:'start'});
+};
+
 async function openZip(file){
  try{
    els.status.textContent='Leyendo paquete…'; S.sourceFile=file;S.zip=await JSZip.loadAsync(file);S.entries.clear();S.docs.clear();S.manifest=null;
