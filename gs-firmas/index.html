@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0b4f7c">
   <title>GS Firmas · Firma documental ESPT</title>
-  <link rel="stylesheet" href="/gs-firmas/styles.css?v=6">
+  <link rel="stylesheet" href="/gs-firmas/styles.css?v=7">
 </head>
 <body>
 <header class="topbar">
@@ -41,11 +41,8 @@
   </section>
 
   <section class="card hidden" id="validationCard">
-    <div class="panel-head">
-      <div>
-        <span class="eyebrow">VALIDACIÓN PREVIA</span>
-        <h2>Documentos e identidad</h2>
-      </div>
+    <div class="panel-head compact-head">
+      <span class="eyebrow">VALIDACIÓN PREVIA</span>
       <span class="legacy-badge" id="validationBadge">Revisando</span>
     </div>
 
@@ -53,14 +50,10 @@
     <div id="docChecks" class="doc-checks"></div>
     <div id="validationMessage" class="message"></div>
 
-    <div class="replace-panel" id="replacePanel">
-      <div class="replace-copy">
-        <strong>Reemplazar firmas o garabatos previos</strong>
-        <span>Para evitar firmas remontadas, la herramienta limpia visualmente únicamente las cinco zonas de firma del usuario antes de insertar la nueva firma. Los demás campos y datos del PDF se conservan.</span>
-      </div>
+    <div class="replace-panel compact-replace" id="replacePanel">
       <label class="switch-row">
         <input id="replacePrior" type="checkbox" checked>
-        <span>Limpiar y reemplazar firma previa</span>
+        <span>Reemplazar firma previa</span>
       </label>
     </div>
   </section>
@@ -83,26 +76,15 @@
 
     <div class="signature-actions">
       <button class="btn secondary" id="clearBtn" type="button">Limpiar firma dibujada</button>
-      <button class="btn primary" id="generateBtn" type="button" disabled>Generar PDF firmado</button>
+      <button class="btn primary" id="generateBtn" type="button" disabled>GENERAR PDF FIRMADO</button>
     </div>
   </section>
 
-  <section class="card done hidden" id="doneCard">
-    <div class="done-icon">✓</div>
-    <div>
-      <h2>PDF firmado generado</h2>
-      <p>Se conservó la estructura del PDF y sus campos. Solo se reemplazaron las zonas de firma del usuario.</p>
-    </div>
-    <div class="done-actions">
-      <a class="btn primary" id="downloadBtn">Descargar PDF firmado</a>
-      <button class="btn secondary" id="newBtn" type="button">Firmar otro documento</button>
-    </div>
-  </section>
 </main>
 
 <div class="toast" id="toast"></div>
 
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script src="/gs-firmas/app.js?v=6"></script>
+<script src="/gs-firmas/app.js?v=7"></script>
 </body>
 </html>
