@@ -245,3 +245,14 @@ h2{margin:5px 0;font-size:22px}
   .master-grid{grid-template-columns:1fr!important}
   .specific-field-grid{grid-template-columns:1fr}
 }
+
+.final-actions{
+  margin-top:22px;
+  padding-top:18px;
+  border-top:1px solid #E7EAEC;
+}
+.final-actions .btn{
+  width:100%;
+  min-height:56px;
+  font-size:16px;
+}
