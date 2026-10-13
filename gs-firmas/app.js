@@ -76,6 +76,43 @@ function getField(form,name){
   try{return form.getField(name)}catch(_){return null}
 }
 
+function isSignatureField(field){
+  try{
+    const ft=field.acroField?.dict?.get(PDFLib.PDFName.of('FT'));
+    return String(ft)==='/Sig';
+  }catch(_){ return false; }
+}
+
+function removeSignatureFieldsSafely(pdfDoc,form){
+  const pages=pdfDoc.getPages();
+  const sigFields=form.getFields().filter(isSignatureField);
+
+  for(const field of sigFields){
+    const refs=[];
+    try{
+      const kids=field.acroField.normalizedEntries().Kids;
+      for(let i=0;i<kids.size();i++){
+        const ref=kids.get(i);
+        if(ref instanceof PDFLib.PDFRef)refs.push(ref);
+      }
+    }catch(_){}
+
+    if(!refs.length && field.ref instanceof PDFLib.PDFRef)refs.push(field.ref);
+
+    for(const ref of refs){
+      for(const page of pages){
+        try{page.node.removeAnnot(ref)}catch(_){}
+      }
+      try{pdfDoc.context.delete(ref)}catch(_){}
+    }
+
+    try{form.acroForm.removeField(field.acroField)}catch(e){
+      console.warn('No se pudo retirar campo de firma del AcroForm',field.getName?.(),e);
+    }
+    try{pdfDoc.context.delete(field.ref)}catch(_){}
+  }
+}
+
 function getPlacement(pdfDoc,form,doc){
   const field=getField(form,doc.signature);
   if(!field)return null;
@@ -329,21 +366,13 @@ async function generate(){
       placements.push({...p,code});
     }
 
-    // Quitamos los campos de firma vacíos antes de aplanar para que no cubran la firma dibujada.
-    for(const doc of Object.values(DOCS)){
-      const f=getField(form,doc.signature);
-      if(f){
-        try{form.removeField(f)}catch(e){console.warn('No se pudo quitar campo de firma',doc.signature,e)}
-      }
-    }
+    // Los PDF de GS Documentos tienen campos /Sig sin apariencia (/AP).
+    // pdf-lib 1.17.1 falla si intenta quitarlos con removeField() o aplanarlos.
+    // Se retiran a bajo nivel (incluida la firma técnica vacía) y luego se aplanan
+    // únicamente los campos que sí tienen apariencia.
+    removeSignatureFieldsSafely(pdfDoc,form);
 
-    // Aplana todos los demás campos usando sus apariencias existentes.
-    try{
-      form.flatten({updateFieldAppearances:false});
-    }catch(e){
-      console.warn('Aplanado estándar falló; se intenta con apariencias actualizadas',e);
-      form.flatten();
-    }
+    form.flatten({updateFieldAppearances:false});
 
     const sigUrl=trimmedSignatureDataUrl();
     if(!sigUrl)throw new Error('Firma vacía');
@@ -365,12 +394,6 @@ async function generate(){
       });
     }
 
-    // Elimina anotaciones interactivas residuales. El resultado queda plano.
-    const {PDFName}=PDFLib;
-    for(const page of pdfDoc.getPages()){
-      try{page.node.delete(PDFName.of('Annots'))}catch(_){}
-    }
-
     const out=await pdfDoc.save({useObjectStreams:false,addDefaultPage:false});
     const blob=new Blob([out],{type:'application/pdf'});
     if(generatedUrl)URL.revokeObjectURL(generatedUrl);
@@ -386,7 +409,7 @@ async function generate(){
     toast('PDF plano generado correctamente');
   }catch(err){
     console.error(err);
-    toast('No fue posible generar el PDF firmado');
+    toast('No fue posible generar el PDF: '+(err?.message||'error desconocido'));
   }finally{
     btn.textContent='Generar PDF final firmado';
     btn.disabled=!hasInk;
