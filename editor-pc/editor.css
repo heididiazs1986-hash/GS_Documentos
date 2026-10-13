@@ -191,3 +191,57 @@ h2{margin:5px 0;font-size:22px}
   .master-field.full{grid-column:auto}
   .editor-scope-note{display:none}
 }
+/* GS Editor v3 · una sola pantalla */
+.workspace{display:block!important}
+.master-panel{
+  position:static!important;
+  max-height:none!important;
+  overflow:visible!important;
+  margin-bottom:18px
+}
+.master-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.docs-panel{margin-top:0!important;min-height:0!important}
+.doc-tabs,.doc-toolbar{display:none!important}
+.readonly-field,[readonly]{
+  background:#F0F2F4!important;
+  color:#69737B!important;
+  cursor:not-allowed!important
+}
+.specific-sections{display:grid!important;gap:16px!important}
+.specific-doc-section{
+  border:1px solid var(--secondary);
+  border-radius:16px;
+  background:#FBFCFD;
+  padding:18px
+}
+.specific-doc-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:14px
+}
+.specific-doc-head strong{
+  font-family:"Open Sans","Segoe UI",sans-serif;
+  font-size:18px;
+  color:var(--ink)
+}
+.doc-code-pill{
+  min-width:44px;height:34px;border-radius:10px;
+  display:grid;place-items:center;
+  background:var(--orange-soft);
+  border:1px solid #FFC8A5;
+  color:#8A3500;font-weight:800
+}
+.specific-field-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:13px
+}
+.specific-field-grid .empty-specific{grid-column:1/-1}
+@media(max-width:900px){
+  .master-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:650px){
+  .master-grid{grid-template-columns:1fr!important}
+  .specific-field-grid{grid-template-columns:1fr}
+}
