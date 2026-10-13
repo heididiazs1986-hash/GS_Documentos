@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Open+Sans:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="icon" href="./app-icon.svg">\n  <link rel="manifest" href="./manifest.json">\n  <link rel="stylesheet" href="./editor.css?v=3">
+  <link rel="icon" href="./app-icon.svg">\n  <link rel="manifest" href="./manifest.json">\n  <link rel="stylesheet" href="./editor.css?v=4">
 </head>
 <body>
 <header class="topbar">
@@ -49,10 +49,6 @@
       <p class="hint">Cada dato común se edita una sola vez y se replica en los documentos relacionados.</p>
       <div class="master-grid" id="masterGrid"></div>
 
-      <div class="action-stack">
-        <button class="btn primary" id="saveZipBtn">Generar ZIP corregido</button>
-        <button class="btn secondary" id="resetBtn">Cerrar paquete</button>
-      </div>
     </aside>
 
     <section class="card docs-panel">
@@ -72,6 +68,9 @@
         <span class="editor-scope-note">Solo se muestran campos específicos de este documento. Los datos comunes se editan una sola vez en Registro general</span>
       </div>
       <div class="field-list" id="docFields"></div>
+      <div class="final-actions">
+        <button class="btn primary" id="saveZipBtn">Generar ZIP corregido</button>
+      </div>
     </section>
   </section>
 </main>
@@ -80,6 +79,6 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script src="./editor.js?v=3"></script>
+<script src="./editor.js?v=4"></script>
 </body>
 </html>
