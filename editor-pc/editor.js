@@ -21,6 +21,7 @@ const DOC_LABELS={
   EC:'Esquema constructivo'
 };
 const masterDefs=[
+ ['proyecto','Nombre del proyecto','text','full'],
  ['orden','Orden RO','text'],
  ['nombre','Nombre del usuario','text'],
  ['cedula','Identificación','text'],
@@ -39,7 +40,8 @@ const masterDefs=[
  ['consejo','Consejo','text'],
  ['matricula','Matrícula profesional','text','full'],
  ['fechaConstruccion','Fecha inicio construcción','date','full'],
- ['observaciones','Observaciones / hallazgos','textarea','full']
+ ['observaciones','Observaciones / hallazgos','textarea','full'],
+ ['idInterno','ID interno','readonly','full']
 ];
 const linked=new Map();
 const friendly={
@@ -64,6 +66,7 @@ const friendly={
 };
 
 const map={
+ proyecto:{E6:['text_1xogj']},
  nombre:{E1:['1 Nombre o Razón Social'],E6:['text_27bpxy'],AR:['text_6prgm'],DJ:['Nombre solicitante','Solicitante Firma'],RETIE:['retie_solicitante'],EC:['ec_usuario'],TD:['usuario','text_232y0c','text_275h9f']},
  cedula:{E1:['4 Número de Documento'],AR:['text_7jdiv'],DJ:['NumIdentificacion'],RETIE:['retie_identificacion'],EC:['ec_identificacion'],TD:['cedula','text_245p3i','text_289o8f']},
  telefono:{E1:['8 Celular'],E6:['text_329o6m'],TD:['contacto']},
