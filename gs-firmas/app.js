@@ -162,9 +162,12 @@ function analyzePdf(pdfDoc){
     item.valid=item.issues.length===0;
   }
 
+  const basePhone=readField(form,'8 Celular');
+  const baseAddress=readField(form,'5 Dirección de quien radica');
+
   const allPresent=Object.values(checks).every(x=>x.present);
   const allValid=Object.values(checks).every(x=>x.present&&x.valid);
-  return{form,checks,baseName,baseId,allPresent,allValid};
+  return{form,checks,baseName,baseId,basePhone,baseAddress,allPresent,allValid};
 }
 
 function renderValidation(){
@@ -177,10 +180,10 @@ function renderValidation(){
     const row=document.createElement('div');
     row.className='doc-row';
     const detail=!item.present
-      ?'No encontrado en el PDF'
+      ?'No encontrado'
       :item.issues.length
         ?item.issues.join(' · ')
-        :(item.id?`${item.name} · C.C. ${item.id}`:item.name);
+        :'';
 
     row.innerHTML=`
       <div class="doc-top">
@@ -188,7 +191,7 @@ function renderValidation(){
         <span class="badge ${item.present&&item.valid?'ok':'bad'}">${item.present&&item.valid?'Correcto':'Revisar'}</span>
       </div>
       <strong>${item.label}</strong>
-      <small>${escapeHtml(detail)}</small>`;
+      ${detail?`<small>${escapeHtml(detail)}</small>`:''}`;
     box.appendChild(row);
   }
 
@@ -198,7 +201,11 @@ function renderValidation(){
     idBox.innerHTML=`
       <strong>USUARIO DETECTADO</strong>
       <div class="person">${escapeHtml(analysis.baseName||'Sin nombre')}</div>
-      <div class="id">C.C. ${escapeHtml(analysis.baseId||'No identificada')}</div>`;
+      <div class="identity-grid">
+        <div><b>C.C.</b><span>${escapeHtml(analysis.baseId||'No identificada')}</span></div>
+        <div><b>Celular</b><span>${escapeHtml(analysis.basePhone||'No registrado')}</span></div>
+        <div class="wide"><b>Dirección</b><span>${escapeHtml(analysis.baseAddress||'No registrada')}</span></div>
+      </div>`;
   }else idBox.classList.add('hidden');
 
   const msg=$('#validationMessage');
@@ -245,7 +252,6 @@ async function loadFile(file){
 
     renderValidation();
     clearSignature();
-    $('#doneCard').classList.add('hidden');
     $('#validationCard').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(err){
     console.error(err);
@@ -409,20 +415,23 @@ async function generate(){
     generatedUrl=URL.createObjectURL(blob);
 
     const base=sourceName.replace(/\.pdf$/i,'');
-    const a=$('#downloadBtn');
+    const a=document.createElement('a');
     a.href=generatedUrl;
     a.download=`${base}_FIRMADO.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
 
-    $('#doneCard').classList.remove('hidden');
-    setStatus('PDF firmado listo');
-    $('#doneCard').scrollIntoView({behavior:'smooth',block:'center'});
-    toast('PDF firmado generado. Los demás campos se conservaron.');
+    setStatus('PDF firmado descargado');
+    toast('PDF firmado descargado. Listo para cargar otro archivo.');
+
+    setTimeout(()=>resetAll(),1200);
   }catch(err){
     console.error(err);
     setStatus('Error al generar');
     toast('No fue posible generar el PDF: '+(err?.message||'error desconocido'));
   }finally{
-    btn.textContent='Generar PDF firmado';
+    btn.textContent='GENERAR PDF FIRMADO';
     btn.disabled=!hasInk;
   }
 }
@@ -434,7 +443,6 @@ function resetAll(){
   $('#fileMeta').classList.add('hidden');
   $('#validationCard').classList.add('hidden');
   $('#signCard').classList.add('hidden');
-  $('#doneCard').classList.add('hidden');
   $('#validationBadge').classList.remove('ok');
   clearSignature();
   setStatus('Sin PDF abierto');
@@ -462,7 +470,6 @@ function bind(){
 
   $('#clearBtn').onclick=clearSignature;
   $('#generateBtn').onclick=generate;
-  $('#newBtn').onclick=resetAll;
   window.addEventListener('resize',()=>setTimeout(resizeCanvas,80));
 }
 
