@@ -1,0 +1,121 @@
+name: Compilar GS Firmas APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "gs-firmas/**"
+      - "gs-firmas-android/**"
+      - "GS_PALETA_OFICIAL.md"
+      - ".github/workflows/build-gs-firmas-apk.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Configurar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Configurar Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools"
+
+      - name: Instalar Android SDK 36
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Instalar utilidades para ícono
+        shell: bash
+        run: sudo apt-get update && sudo apt-get install -y librsvg2-bin
+
+      - name: Instalar dependencias
+        working-directory: gs-firmas-android
+        run: npm install --no-audit --no-fund
+
+      - name: Preparar archivos web
+        shell: bash
+        run: |
+          rm -rf gs-firmas-android/www gs-firmas-android/android
+          mkdir -p gs-firmas-android/www
+          cp -R gs-firmas/. gs-firmas-android/www/
+          cp gs-firmas-android/node_modules/pdf-lib/dist/pdf-lib.min.js gs-firmas-android/www/pdf-lib.min.js
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("gs-firmas-android/www/index.html")
+          s = p.read_text(encoding="utf-8")
+          s = s.replace('/gs-firmas/styles.css?v=9', './styles.css')
+          s = s.replace('/gs-firmas/app.js?v=9', './app.js')
+          s = s.replace('/gs-firmas/app-icon.svg', './app-icon.svg')
+          s = s.replace('https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js', './pdf-lib.min.js')
+          p.write_text(s, encoding="utf-8")
+          PY
+
+      - name: Crear proyecto Android
+        working-directory: gs-firmas-android
+        run: |
+          npx cap add android
+          npx cap sync android
+
+      - name: Aplicar ícono GS
+        shell: bash
+        run: |
+          ICON="gs-firmas/app-icon.svg"
+          declare -A SIZES=(
+            [mdpi]=48
+            [hdpi]=72
+            [xhdpi]=96
+            [xxhdpi]=144
+            [xxxhdpi]=192
+          )
+
+          rm -f gs-firmas-android/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml
+          rm -f gs-firmas-android/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+
+          for density in "${!SIZES[@]}"; do
+            size="${SIZES[$density]}"
+            dir="gs-firmas-android/android/app/src/main/res/mipmap-$density"
+            mkdir -p "$dir"
+            rsvg-convert -w "$size" -h "$size" "$ICON" > "$dir/ic_launcher.png"
+            cp "$dir/ic_launcher.png" "$dir/ic_launcher_round.png"
+          done
+
+      - name: Compilar APK
+        shell: bash
+        run: |
+          chmod +x gs-firmas-android/android/gradlew
+          cd gs-firmas-android/android
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Preparar APK
+        shell: bash
+        run: cp gs-firmas-android/android/app/build/outputs/apk/debug/app-debug.apk GS_Firmas.apk
+
+      - name: Publicar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: GS-Firmas-APK
+          path: GS_Firmas.apk
+          if-no-files-found: error
+          retention-days: 30

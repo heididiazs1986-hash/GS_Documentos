@@ -1,0 +1,8 @@
+{
+  "appId": "co.gestionsocial.gsfirmas",
+  "appName": "GS Firmas",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  }
+}

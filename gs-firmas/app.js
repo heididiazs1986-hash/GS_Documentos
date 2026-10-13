@@ -356,6 +356,45 @@ function cleanPriorSignature(page,p,code){
   page.drawRectangle({x,y,width,height,color:PDFLib.rgb(1,1,1),borderWidth:0});
 }
 
+function bytesToBase64(bytes){
+  const chunk=0x8000;
+  let binary='';
+  for(let i=0;i<bytes.length;i+=chunk){
+    binary+=String.fromCharCode(...bytes.subarray(i,Math.min(i+chunk,bytes.length)));
+  }
+  return btoa(binary);
+}
+
+async function deliverPdf(out,fileName){
+  const cap=window.Capacitor;
+  const fs=cap?.Plugins?.Filesystem;
+
+  if(cap?.isNativePlatform?.()&&fs){
+    try{
+      await fs.writeFile({
+        path:`GS_Firmas/${fileName}`,
+        data:bytesToBase64(out),
+        directory:'DOCUMENTS',
+        recursive:true
+      });
+      return{native:true};
+    }catch(err){
+      console.warn('No fue posible guardar con Filesystem; se usa descarga web.',err);
+    }
+  }
+
+  const blob=new Blob([out],{type:'application/pdf'});
+  if(generatedUrl)URL.revokeObjectURL(generatedUrl);
+  generatedUrl=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=generatedUrl;
+  a.download=fileName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  return{native:false};
+}
+
 async function generate(){
   if(!sourceBytes||!analysis?.allValid||!hasInk)return;
 
@@ -410,22 +449,16 @@ async function generate(){
       updateFieldAppearances:false
     });
 
-    const blob=new Blob([out],{type:'application/pdf'});
-    if(generatedUrl)URL.revokeObjectURL(generatedUrl);
-    generatedUrl=URL.createObjectURL(blob);
-
     const base=sourceName.replace(/\.pdf$/i,'');
-    const a=document.createElement('a');
-    a.href=generatedUrl;
-    a.download=`${base}_FIRMADO.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+    const fileName=`${base}_FIRMADO.pdf`;
+    const delivery=await deliverPdf(out,fileName);
 
-    setStatus('PDF firmado descargado');
-    toast('PDF firmado descargado. Listo para cargar otro archivo.');
+    setStatus(delivery.native?'PDF guardado':'PDF descargado');
+    toast(delivery.native
+      ?'PDF guardado en Documentos/GS_Firmas. Listo para cargar otro archivo.'
+      :'PDF firmado descargado. Listo para cargar otro archivo.');
 
-    setTimeout(()=>resetAll(),1200);
+    setTimeout(()=>resetAll(),1400);
   }catch(err){
     console.error(err);
     setStatus('Error al generar');

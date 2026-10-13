@@ -1,9 +1,17 @@
 {
-  "name":"GS Firmas",
-  "short_name":"GS Firmas",
-  "start_url":"./",
-  "display":"standalone",
-  "background_color":"#f4f8fb",
-  "theme_color":"#0b4f7c",
-  "description":"Firma documental ESPT para E1, E6, AR, DJ y TD"
+  "name": "GS Firmas",
+  "short_name": "GS Firmas",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#FEFEFF",
+  "theme_color": "#FF6600",
+  "description": "Firma documental ESPT para E1, E6, AR, DJ y TD",
+  "icons": [
+    {
+      "src": "./app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
 }

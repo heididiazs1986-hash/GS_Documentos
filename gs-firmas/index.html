@@ -3,15 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#0b4f7c">
+  <meta name="theme-color" content="#FF6600">
   <title>GS Firmas · Firma documental ESPT</title>
-  <link rel="stylesheet" href="/gs-firmas/styles.css?v=8">
+  <link rel="icon" href="/gs-firmas/app-icon.svg">
+  <link rel="stylesheet" href="/gs-firmas/styles.css?v=9">
 </head>
 <body>
 <header class="topbar">
-  <div>
-    <div class="brand">GS Firmas</div>
-    <div class="subbrand">Firma documental ESPT · Gestión Social</div>
+  <div class="brand-wrap">
+    <img class="brand-icon" src="/gs-firmas/app-icon.svg" alt="">
+    <div>
+      <div class="brand">GS Firmas</div>
+      <div class="subbrand">Firma documental ESPT · Gestión Social</div>
+    </div>
   </div>
   <div class="status-pill" id="statusPill">Sin PDF abierto</div>
 </header>
@@ -79,12 +83,11 @@
       <button class="btn primary" id="generateBtn" type="button" disabled>GENERAR PDF FIRMADO</button>
     </div>
   </section>
-
 </main>
 
 <div class="toast" id="toast"></div>
 
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script src="/gs-firmas/app.js?v=8"></script>
+<script src="/gs-firmas/app.js?v=9"></script>
 </body>
 </html>
