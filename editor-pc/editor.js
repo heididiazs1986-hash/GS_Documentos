@@ -166,6 +166,7 @@ function deriveMaster(){
 function applyMaster(key){
  const value=S.master[key]??''; const docs=map[key]||{};
  Object.entries(docs).forEach(([doc,names])=>names.forEach(n=>setDocValue(doc,n,value)));
+ if(key==='proyecto')setDocValue('E6','text_1xogj',value);
  if(key==='fecha'){
    const iso=isoDate(value), [y,m,d]=iso?iso.split('-'):['','',''];
    setDocValue('TD','text_318x6q',iso);
