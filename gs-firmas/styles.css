@@ -123,3 +123,25 @@ body{min-height:100vh}
   .signature-frame{height:190px}
   .signature-actions{grid-template-columns:1fr}
 }
+
+.file-picker{
+  display:block;
+  width:100%;
+  margin-top:12px;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fff;
+  color:var(--ink);
+  font-size:14px;
+}
+.file-picker::file-selector-button{
+  border:0;
+  border-radius:10px;
+  background:var(--blue);
+  color:#fff;
+  padding:10px 14px;
+  margin-right:10px;
+  font-weight:800;
+  cursor:pointer;
+}
