@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b5cab">
+  <title>GS Firmas</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <div class="brand-mark">GS</div>
+      <div>
+        <p class="eyebrow">Gestión Social · ESPT</p>
+        <h1>GS Firmas</h1>
+        <p class="subtitle">Carga un solo PDF, valida E1, E6, AR, DJ y TD, firma una vez y genera un PDF final plano.</p>
+      </div>
+    </header>
+
+    <section class="card" id="uploadCard">
+      <div class="step-title"><span>1</span><div><h2>Cargar expediente</h2><p>El archivo se procesa en este dispositivo. No se envía a un servidor.</p></div></div>
+      <label class="dropzone" id="dropzone" for="pdfInput">
+        <strong>Seleccionar PDF</strong>
+        <span>Un solo archivo con E1, E6, AR, DJ y TD</span>
+        <input id="pdfInput" type="file" accept="application/pdf,.pdf" hidden>
+      </label>
+      <div id="fileInfo" class="file-info hidden"></div>
+      <div id="validationMessage" class="notice neutral">Primero carga el PDF para iniciar la validación.</div>
+    </section>
+
+    <section class="card hidden" id="validationCard">
+      <div class="step-title"><span>2</span><div><h2>Validación automática</h2><p>La firma solo se habilita cuando los cinco documentos y la identidad coinciden.</p></div></div>
+      <div class="doc-grid" id="docGrid"></div>
+      <div class="identity-box" id="identityBox"></div>
+      <div id="blockingIssues" class="issues hidden"></div>
+    </section>
+
+    <section class="card hidden" id="signatureCard">
+      <div class="step-title"><span>3</span><div><h2>Firma del usuario</h2><p>La persona firma una sola vez. Esa firma se aplicará automáticamente en E1, E6, AR, DJ y TD.</p></div></div>
+
+      <label class="consent">
+        <input type="checkbox" id="consentCheck">
+        <span>Confirmo que la persona que firma revisó la información del expediente y acepta incorporar esta firma en los cinco documentos.</span>
+      </label>
+
+      <div class="signature-wrap disabled" id="signatureWrap">
+        <canvas id="signatureCanvas" aria-label="Área para firma"></canvas>
+        <div class="signature-hint" id="signatureHint">Firma aquí con el dedo, lápiz o mouse</div>
+      </div>
+      <div class="button-row">
+        <button class="secondary" id="clearSignature" disabled>Limpiar firma</button>
+        <button class="primary" id="generateBtn" disabled>Generar PDF final firmado</button>
+      </div>
+      <p class="fineprint">El resultado se rasteriza página por página para entregar un <strong>PDF plano</strong>: la firma queda integrada al contenido y no como anotación movible.</p>
+      <div id="progressBox" class="progress-box hidden">
+        <div class="spinner"></div>
+        <span id="progressText">Procesando…</span>
+      </div>
+    </section>
+
+    <section class="card success-card hidden" id="successCard">
+      <div class="success-icon">✓</div>
+      <div>
+        <h2>PDF final listo</h2>
+        <p id="successText">Se generó el expediente firmado y plano.</p>
+        <button class="primary" id="downloadAgainBtn">Descargar nuevamente</button>
+      </div>
+    </section>
+  </main>
+
+  <footer>GS Firmas · Uso comunitario · ESPT</footer>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
