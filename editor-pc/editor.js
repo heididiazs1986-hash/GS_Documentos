@@ -187,7 +187,8 @@ function renderMaster(){
    const input=type==='textarea'?document.createElement('textarea'):document.createElement('input');
    if(type==='date')input.type='date';
    input.value=S.master[key]||'';input.dataset.key=key;
-   input.addEventListener('input',()=>{S.master[key]=input.value;applyMaster(key);renderActiveFields(false)});
+   if(key==='idInterno') input.setAttribute('readonly','readonly');
+   else input.addEventListener('input',()=>{S.master[key]=input.value;applyMaster(key);renderActiveFields(false)});
    wrap.appendChild(input);els.master.appendChild(wrap);
  }
 }
