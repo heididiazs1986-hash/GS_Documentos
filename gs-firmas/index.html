@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0b4f7c">
+  <title>GS Firmas</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand-wrap">
+    <div class="brand-mark">GS</div>
+    <div>
+      <strong>GS Firmas</strong>
+      <span>Firma documental ESPT</span>
+    </div>
+  </div>
+  <span class="privacy">Procesamiento local</span>
+</header>
+
+<main class="shell">
+  <section class="hero">
+    <span class="eyebrow">HERRAMIENTA PARA FIRMA DEL USUARIO</span>
+    <h1>Carga, valida y firma una sola vez.</h1>
+    <p>La herramienta valida E1, E6, AR, DJ y TD antes de habilitar la firma. El resultado se genera como un único PDF plano.</p>
+  </section>
+
+  <section class="card" id="loadCard">
+    <div class="step-head">
+      <span class="step">1</span>
+      <div>
+        <h2>Cargar PDF</h2>
+        <p>Selecciona el PDF consolidado del usuario.</p>
+      </div>
+    </div>
+
+    <label class="dropzone" id="dropzone">
+      <input id="pdfInput" type="file" accept="application/pdf,.pdf" hidden>
+      <span class="drop-icon">PDF</span>
+      <strong>Seleccionar documento</strong>
+      <small>También puedes arrastrarlo aquí</small>
+    </label>
+
+    <div id="fileMeta" class="file-meta hidden"></div>
+  </section>
+
+  <section class="card hidden" id="validationCard">
+    <div class="step-head">
+      <span class="step">2</span>
+      <div>
+        <h2>Validación automática</h2>
+        <p>Se revisa que estén los cinco documentos y que correspondan al mismo usuario.</p>
+      </div>
+    </div>
+
+    <div id="identityBox" class="identity-box hidden"></div>
+    <div id="docChecks" class="doc-checks"></div>
+    <div id="validationMessage" class="message"></div>
+  </section>
+
+  <section class="card hidden" id="signCard">
+    <div class="step-head">
+      <span class="step">3</span>
+      <div>
+        <h2>Firma del usuario</h2>
+        <p>La persona identificada en los documentos debe realizar su propia firma.</p>
+      </div>
+    </div>
+
+    <div class="notice">
+      La firma se aplicará automáticamente en E1, E6, AR, DJ y TD. No es necesario firmar cinco veces.
+    </div>
+
+    <div class="signature-frame">
+      <canvas id="signatureCanvas"></canvas>
+      <span class="sign-hint" id="signHint">Firma aquí con el dedo, lápiz o mouse</span>
+    </div>
+
+    <div class="signature-actions">
+      <button class="btn secondary" id="clearBtn" type="button">Limpiar firma</button>
+      <button class="btn primary" id="generateBtn" type="button" disabled>Generar PDF final firmado</button>
+    </div>
+  </section>
+
+  <section class="card hidden" id="doneCard">
+    <div class="done-icon">✓</div>
+    <h2>PDF final generado</h2>
+    <p>Las cinco firmas quedaron incorporadas y los campos del PDF fueron aplanados.</p>
+    <a class="btn primary download" id="downloadBtn">Descargar PDF firmado</a>
+    <button class="btn secondary" id="newBtn" type="button">Firmar otro documento</button>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
