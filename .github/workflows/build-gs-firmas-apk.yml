@@ -63,14 +63,23 @@ jobs:
 
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p = Path("gs-firmas-android/www/index.html")
           s = p.read_text(encoding="utf-8")
-          s = s.replace('/gs-firmas/styles.css?v=9', './styles.css')
-          s = s.replace('/gs-firmas/app.js?v=9', './app.js')
+          s = re.sub(r'href="/gs-firmas/styles\.css(?:\?v=[^"]+)?"', 'href="./styles.css"', s)
+          s = re.sub(r'src="/gs-firmas/app\.js(?:\?v=[^"]+)?"', 'src="./app.js"', s)
           s = s.replace('/gs-firmas/app-icon.svg', './app-icon.svg')
           s = s.replace('https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js', './pdf-lib.min.js')
           p.write_text(s, encoding="utf-8")
+
+          if '/gs-firmas/' in s:
+              raise SystemExit("Quedaron rutas absolutas de /gs-firmas/ en el HTML Android")
           PY
+
+          test -f gs-firmas-android/www/styles.css
+          test -f gs-firmas-android/www/app.js
+          test -f gs-firmas-android/www/app-icon.svg
+          test -f gs-firmas-android/www/pdf-lib.min.js
 
       - name: Crear proyecto Android
         working-directory: gs-firmas-android

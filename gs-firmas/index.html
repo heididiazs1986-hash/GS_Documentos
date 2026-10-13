@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#FF6600">
   <title>GS Firmas · Firma documental ESPT</title>
   <link rel="icon" href="/gs-firmas/app-icon.svg">
-  <link rel="stylesheet" href="/gs-firmas/styles.css?v=10">
+  <link rel="stylesheet" href="/gs-firmas/styles.css?v=11">
 </head>
 <body>
 <header class="topbar">
@@ -26,11 +26,6 @@
       <span class="eyebrow">FIRMA DOCUMENTAL</span>
       <h1>Herramienta para captura de firma de usuarios</h1>
       <p>Proceso documental interno de gestión social</p>
-      <div class="hero-tags">
-        <span>✓ Conserva campos del PDF</span>
-        <span>✓ Reemplaza trazos previos</span>
-        <span>✓ Procesamiento local</span>
-      </div>
     </div>
 
     <div class="upload-panel">
@@ -38,7 +33,7 @@
       <label class="dropzone" id="dropzone" for="pdfInput">
         <span class="drop-icon">⌑</span>
         <strong>Abrir PDF</strong>
-        <small>Arrastra el documento aquí o haz clic para seleccionarlo</small>
+        <small>Toca aquí para seleccionar el documento</small>
       </label>
       <div id="fileMeta" class="file-meta hidden"></div>
     </div>
@@ -90,7 +85,7 @@
     </div>
 
     <div class="signature-actions">
-      <button class="btn secondary" id="clearBtn" type="button">Limpiar firma dibujada</button>
+      <button class="btn secondary" id="clearBtn" type="button">Limpiar firma</button>
       <button class="btn primary" id="generateBtn" type="button" disabled>Generar documentos firmados</button>
     </div>
   </section>
@@ -99,6 +94,6 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script src="/gs-firmas/app.js?v=10"></script>
+<script src="/gs-firmas/app.js?v=11"></script>
 </body>
 </html>
