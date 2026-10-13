@@ -405,7 +405,6 @@ function resetAll(){
 }
 
 function bind(){
-  $('#dropzone').onclick=()=>$('#pdfInput').click();
   $('#pdfInput').onchange=e=>loadFile(e.target.files?.[0]);
   const dz=$('#dropzone');
   ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag')}));
@@ -427,6 +426,5 @@ function bind(){
 
 document.addEventListener('DOMContentLoaded',()=>{
   bind();
-  if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 });
 })();
