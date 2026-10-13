@@ -15,7 +15,7 @@ const masterDefs=[
  ['orden','Orden RO','text'],
  ['nombre','Nombre del usuario','text'],
  ['cedula','Identificación','text'],
- ['telefono','Contacto','text'],
+ ['telefono','Celular','text'],
  ['localidad','Localidad','text'],
  ['sector','Sector / barrio','text'],
  ['municipio','Municipio','text'],
@@ -23,7 +23,7 @@ const masterDefs=[
  ['direccion','Dirección','text','full'],
  ['latitud','Latitud','text'],
  ['longitud','Longitud','text'],
- ['fecha','Fecha del documento','date'],
+ ['fecha','Fecha de solicitud','date'],
  ['tecnico','Técnico / gestor','text','full'],
  ['cedulaTecnico','Cédula del técnico','text'],
  ['profesion','Profesión','text'],
@@ -73,6 +73,17 @@ const map={
  observaciones:{TD:['observaciones']}
 };
 Object.entries(map).forEach(([master,docs])=>Object.entries(docs).forEach(([doc,names])=>names.forEach(n=>linked.set(doc+'|'+n,master))));
+
+// Campos derivados de "Fecha de solicitud": se muestran una sola vez en Registro general.
+[
+ ['E1','2 Fecha de solicitud de servicio'],
+ ['E6','text_18ovuf'],
+ ['AR','text_8ptdj'],['AR','text_9ujpp'],['AR','text_10ipyf'],
+ ['DJ','FechaFirma'],
+ ['RETIE','retie_dia'],['RETIE','retie_mes'],['RETIE','retie_año'],
+ ['EC','ec_fecha'],
+ ['TD','text_318x6q']
+].forEach(([doc,name])=>linked.set(doc+'|'+name,'fecha'));
 
 function toast(msg){els.toast.textContent=msg;els.toast.classList.add('show');setTimeout(()=>els.toast.classList.remove('show'),2600)}
 function docType(path){
@@ -181,30 +192,44 @@ function isAppField(docType,f){
   if(!f || f.type==='checkbox' || f.type==='other')return false;
   return !!friendly[f.name] || linked.has(docType+'|'+f.name);
 }
+function isSpecificAppField(docType,f){
+  return isAppField(docType,f) && !linked.has(docType+'|'+f.name);
+}
 function visibleFieldCount(d){
-  return [...d.fields.values()].filter(f=>isAppField(d.type,f)).length;
+  return [...d.fields.values()].filter(f=>isSpecificAppField(d.type,f)).length;
 }
 function renderActiveFields(scroll){
  const d=S.docs.get(S.active); if(!d)return;
  const visible=visibleFieldCount(d);
  els.title.textContent=d.type;
- els.meta.textContent=d.path+' · '+d.pages+' pág. · '+visible+' campos editables de la app';
+ els.meta.textContent=d.path+' · '+d.pages+' pág. · '+visible+' campos específicos';
  els.fields.innerHTML='';
- [...d.fields.values()].forEach(f=>{
-   if(!isAppField(d.type,f))return;
-   const wrap=document.createElement('div');wrap.className='raw-field'+(linked.has(d.type+'|'+f.name)?' master-linked':'');
-   const lab=document.createElement('label');lab.textContent=editableLabel(d.type,f.name);wrap.appendChild(lab);
-   let input;
-   if(f.type==='select'){
-     input=document.createElement('select');const opts=[...new Set(['',...(f.options||[]),f.value||''])];opts.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v||'—';input.appendChild(o)});input.value=f.value||'';
-   }else{
-     input=document.createElement((String(f.value).length>130)?'textarea':'input');input.value=f.value||'';
-   }
-   input.oninput=()=>{f.value=input.value};
-   wrap.appendChild(input);
-   const raw=document.createElement('div');raw.className='raw-name';raw.textContent=f.name+(linked.has(d.type+'|'+f.name)?' · vinculado a '+linked.get(d.type+'|'+f.name):'');wrap.appendChild(raw);
-   els.fields.appendChild(wrap);
- });
+
+ const specific=[...d.fields.values()].filter(f=>isSpecificAppField(d.type,f));
+ if(!specific.length){
+   const empty=document.createElement('div');
+   empty.className='empty-specific';
+   empty.innerHTML='<strong>Sin campos adicionales</strong><span>Los datos de este documento ya se editan desde Registro general, sin repetirlos aquí.</span>';
+   els.fields.appendChild(empty);
+ }else{
+   specific.forEach(f=>{
+     const wrap=document.createElement('div');wrap.className='raw-field';
+     const lab=document.createElement('label');lab.textContent=editableLabel(d.type,f.name);wrap.appendChild(lab);
+     let input;
+     if(f.type==='select'){
+       input=document.createElement('select');
+       const opts=[...new Set(['',...(f.options||[]),f.value||''])];
+       opts.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v||'—';input.appendChild(o)});
+       input.value=f.value||'';
+     }else{
+       input=document.createElement((String(f.value).length>130)?'textarea':'input');
+       input.value=f.value||'';
+     }
+     input.oninput=()=>{f.value=input.value};
+     wrap.appendChild(input);
+     els.fields.appendChild(wrap);
+   });
+ }
  if(scroll)els.fields.scrollIntoView({behavior:'smooth',block:'start'});
 }
 async function openZip(file){

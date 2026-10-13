@@ -1,0 +1,10 @@
+{
+  "name":"GS Editor",
+  "short_name":"GS Editor",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#FEFEFF",
+  "theme_color":"#FF6600",
+  "description":"Editor documental de Gestión Social",
+  "icons":[{"src":"./app-icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
