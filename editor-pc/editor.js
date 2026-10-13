@@ -166,7 +166,14 @@ function deriveMaster(){
 function applyMaster(key){
  const value=S.master[key]??''; const docs=map[key]||{};
  Object.entries(docs).forEach(([doc,names])=>names.forEach(n=>setDocValue(doc,n,value)));
- if(key==='proyecto')setDocValue('E6','text_1xogj',value);
+ if(key==='proyecto'){
+   for(const [type,d] of S.docs){
+     for(const field of d.fields.values()){
+       const label=friendly[field.name]||field.name;
+       if(/proyecto/i.test(label))field.value=value;
+     }
+   }
+ }
  if(key==='fecha'){
    const iso=isoDate(value), [y,m,d]=iso?iso.split('-'):['','',''];
    setDocValue('TD','text_318x6q',iso);
@@ -304,11 +311,17 @@ async function openZip(file){
    })())});
    await Promise.all(jobs);
    if(!S.docs.size)throw new Error('No se encontraron PDF editables en el ZIP');
-   deriveMaster();S.active=[...S.docs.keys()].sort((a,b)=>DOC_ORDER.indexOf(a)-DOC_ORDER.indexOf(b))[0];
+   for(const [type,d] of S.docs){
+     for(const field of d.fields.values()){
+       const label=friendly[field.name]||field.name;
+       if(/proyecto/i.test(label))linked.set(type+'|'+field.name,'proyecto');
+     }
+   }
+   deriveMaster();S.active=null;
    renderMaster();renderTabs();renderActiveFields(false);
    const supports=[...S.entries.keys()].filter(p=>p.toUpperCase().startsWith('SOPORTES/')&&!p.endsWith('/')).length;
-   els.summary.textContent=S.docs.size+' documentos · '+supports+' soportes';
-   els.packageTitle.textContent=file.name;
+   els.summary.textContent='E6 y DJ · '+supports+' soportes';
+   els.packageTitle.textContent='Campos específicos · E6 y DJ';
    els.legacy.textContent=S.manifest?'ZIP con ficha maestra':'ZIP legado · reconstruido desde PDF';
    els.legacy.style.display='';
    els.workspace.classList.remove('hidden');els.openCard.classList.add('hidden');els.status.textContent='Paquete listo para editar';
