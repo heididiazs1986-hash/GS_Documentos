@@ -4,74 +4,77 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#0b4f7c">
-  <title>GS Firmas</title>
-  <link rel="manifest" href="/gs-firmas/manifest.json?v=4">
-  <link rel="stylesheet" href="/gs-firmas/styles.css?v=4">
+  <title>GS Firmas · Firma documental ESPT</title>
+  <link rel="stylesheet" href="/gs-firmas/styles.css?v=6">
 </head>
 <body>
 <header class="topbar">
-  <div class="brand-wrap">
-    <div class="brand-mark">GS</div>
-    <div>
-      <strong>GS Firmas</strong>
-      <span>Firma documental ESPT</span>
-    </div>
+  <div>
+    <div class="brand">GS Firmas</div>
+    <div class="subbrand">Firma documental ESPT · Gestión Social</div>
   </div>
-  <span class="privacy">Procesamiento local</span>
+  <div class="status-pill" id="statusPill">Sin PDF abierto</div>
 </header>
 
 <main class="shell">
-  <section class="hero">
-    <span class="eyebrow">HERRAMIENTA PARA FIRMA DEL USUARIO</span>
-    <h1>Carga, valida y firma una sola vez.</h1>
-    <p>La herramienta valida E1, E6, AR, DJ y TD antes de habilitar la firma. El resultado se genera como un único PDF plano.</p>
-  </section>
-
-  <section class="card" id="loadCard">
-    <div class="step-head">
-      <span class="step">1</span>
-      <div>
-        <h2>Cargar PDF</h2>
-        <p>Selecciona el PDF consolidado del usuario.</p>
+  <section class="hero card">
+    <div class="hero-copy">
+      <span class="eyebrow">FIRMA DOCUMENTAL</span>
+      <h1>Firma una vez. Actualiza los cinco documentos.</h1>
+      <p>Carga el PDF consolidado. GS Firmas valida E1, E6, AR, DJ y TD, confirma que correspondan al mismo usuario y reemplaza únicamente las firmas del usuario sin aplanar ni borrar los demás campos.</p>
+      <div class="hero-tags">
+        <span>✓ Conserva campos del PDF</span>
+        <span>✓ Reemplaza trazos previos</span>
+        <span>✓ Procesamiento local</span>
       </div>
     </div>
 
-    <label class="dropzone" id="dropzone" for="pdfInput">
-      <span class="drop-icon">PDF</span>
-      <strong>Cargar documento PDF</strong>
-      <small>Toca aquí o usa el selector de archivo que aparece debajo</small>
-    </label>
-    <input id="pdfInput" class="file-picker" type="file" accept=".pdf,application/pdf">
-
-    <div id="fileMeta" class="file-meta hidden"></div>
+    <div class="upload-panel">
+      <input id="pdfInput" type="file" accept=".pdf,application/pdf" hidden>
+      <label class="dropzone" id="dropzone" for="pdfInput">
+        <span class="drop-icon">⌑</span>
+        <strong>Abrir PDF</strong>
+        <small>Arrastra el documento aquí o haz clic para seleccionarlo</small>
+      </label>
+      <div id="fileMeta" class="file-meta hidden"></div>
+    </div>
   </section>
 
   <section class="card hidden" id="validationCard">
-    <div class="step-head">
-      <span class="step">2</span>
+    <div class="panel-head">
       <div>
-        <h2>Validación automática</h2>
-        <p>Se revisa que estén los cinco documentos y que correspondan al mismo usuario.</p>
+        <span class="eyebrow">VALIDACIÓN PREVIA</span>
+        <h2>Documentos e identidad</h2>
       </div>
+      <span class="legacy-badge" id="validationBadge">Revisando</span>
     </div>
 
     <div id="identityBox" class="identity-box hidden"></div>
     <div id="docChecks" class="doc-checks"></div>
     <div id="validationMessage" class="message"></div>
+
+    <div class="replace-panel" id="replacePanel">
+      <div class="replace-copy">
+        <strong>Reemplazar firmas o garabatos previos</strong>
+        <span>Para evitar firmas remontadas, la herramienta limpia visualmente únicamente las cinco zonas de firma del usuario antes de insertar la nueva firma. Los demás campos y datos del PDF se conservan.</span>
+      </div>
+      <label class="switch-row">
+        <input id="replacePrior" type="checkbox" checked>
+        <span>Limpiar y reemplazar firma previa</span>
+      </label>
+    </div>
   </section>
 
   <section class="card hidden" id="signCard">
-    <div class="step-head">
-      <span class="step">3</span>
+    <div class="panel-head">
       <div>
-        <h2>Firma del usuario</h2>
-        <p>La persona identificada en los documentos debe realizar su propia firma.</p>
+        <span class="eyebrow">FIRMA DEL USUARIO</span>
+        <h2>Firma una sola vez</h2>
       </div>
+      <span class="legacy-badge ok">E1 · E6 · AR · DJ · TD</span>
     </div>
 
-    <div class="notice">
-      La firma se aplicará automáticamente en E1, E6, AR, DJ y TD. No es necesario firmar cinco veces.
-    </div>
+    <p class="hint">La persona identificada en los documentos debe realizar su propia firma. Puedes limpiar y repetir el trazo antes de generar el archivo.</p>
 
     <div class="signature-frame">
       <canvas id="signatureCanvas"></canvas>
@@ -79,31 +82,27 @@
     </div>
 
     <div class="signature-actions">
-      <button class="btn secondary" id="clearBtn" type="button">Limpiar firma</button>
-      <button class="btn primary" id="generateBtn" type="button" disabled>Generar PDF final firmado</button>
+      <button class="btn secondary" id="clearBtn" type="button">Limpiar firma dibujada</button>
+      <button class="btn primary" id="generateBtn" type="button" disabled>Generar PDF firmado</button>
     </div>
   </section>
 
-  <section class="card hidden" id="doneCard">
+  <section class="card done hidden" id="doneCard">
     <div class="done-icon">✓</div>
-    <h2>PDF final generado</h2>
-    <p>Las cinco firmas quedaron incorporadas y los campos del PDF fueron aplanados.</p>
-    <a class="btn primary download" id="downloadBtn">Descargar PDF firmado</a>
-    <button class="btn secondary" id="newBtn" type="button">Firmar otro documento</button>
+    <div>
+      <h2>PDF firmado generado</h2>
+      <p>Se conservó la estructura del PDF y sus campos. Solo se reemplazaron las zonas de firma del usuario.</p>
+    </div>
+    <div class="done-actions">
+      <a class="btn primary" id="downloadBtn">Descargar PDF firmado</a>
+      <button class="btn secondary" id="newBtn" type="button">Firmar otro documento</button>
+    </div>
   </section>
 </main>
 
 <div class="toast" id="toast"></div>
 
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.getRegistrations().then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
-  }
-  if ('caches' in window) {
-    caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('gs-firmas-')).map(k=>caches.delete(k)))).catch(()=>{});
-  }
-</script>
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-<script src="/gs-firmas/app.js?v=4"></script>
+<script src="/gs-firmas/app.js?v=6"></script>
 </body>
 </html>
