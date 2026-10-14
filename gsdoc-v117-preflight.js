@@ -117,6 +117,68 @@
       }catch(e){console.warn('GS v117 saneamiento XLSX',e)}
       return originalWrite.call(this,wb,opts);
     };
+
+    // v131: cubrir TODAS las rutas comunes de SheetJS.
+    // El error de 32.767 caracteres puede ocurrir antes de XLSX.write(),
+    // por ejemplo al construir/agregar celdas con aoa_to_sheet o sheet_add_json.
+    const cleanScalar=v=>{
+      if(v==null) return '';
+      if(typeof v==='string'){
+        if(/^data:(image|application)\//i.test(v)) return '';
+        if(/^JVBERi0/i.test(v) && v.length>5000) return '';
+        return v.length>MAX_CELL ? v.slice(0,MAX_CELL) : v;
+      }
+      if(Array.isArray(v)) return cleanScalar(v.join(' | '));
+      if(typeof v==='object'){
+        try{return cleanScalar(JSON.stringify(v))}catch(_){return cleanScalar(String(v))}
+      }
+      return v;
+    };
+
+    const sanitizeAOA=data=>Array.isArray(data)
+      ? data.map(row=>Array.isArray(row)?row.map(cleanScalar):row)
+      : data;
+
+    const wrapUtil=(name,sanitizer)=>{
+      const fn=globalThis.XLSX.utils?.[name];
+      if(typeof fn!=='function' || fn.__gs131Wrapped) return;
+      const wrapped=function(data,...rest){
+        return fn.call(this,sanitizer(data),...rest);
+      };
+      wrapped.__gs131Wrapped=true;
+      globalThis.XLSX.utils[name]=wrapped;
+    };
+
+    wrapUtil('aoa_to_sheet',sanitizeAOA);
+    wrapUtil('sheet_add_aoa',sanitizeAOA);
+    wrapUtil('sheet_add_json',data=>{
+      const rows=Array.isArray(data)?data:[];
+      return rows.map(row=>{
+        if(!row || typeof row!=='object') return row;
+        const out={};
+        for(const [k,v] of Object.entries(row)) out[k]=cleanScalar(v);
+        return out;
+      });
+    });
+
+    if(typeof globalThis.XLSX.writeFile==='function' && !globalThis.XLSX.writeFile.__gs131Wrapped){
+      const originalWriteFile=globalThis.XLSX.writeFile;
+      const wrappedWriteFile=function(wb,...rest){
+        try{
+          for(const ws of Object.values(wb?.Sheets||{})){
+            if(!ws || typeof ws!=='object') continue;
+            for(const [addr,cell] of Object.entries(ws)){
+              if(addr[0]==='!' || !cell) continue;
+              if(typeof cell.v==='string') cell.v=cleanScalar(cell.v);
+            }
+          }
+        }catch(e){console.warn('GS v131 saneamiento writeFile',e)}
+        return originalWriteFile.call(this,wb,...rest);
+      };
+      wrappedWriteFile.__gs131Wrapped=true;
+      globalThis.XLSX.writeFile=wrappedWriteFile;
+    }
+
     globalThis.XLSX.__gs117SafeExport=true;
     console.info('GS Documentos v117 · protección XLSX activa');
     return true;
