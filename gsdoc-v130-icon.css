@@ -1,18 +1,28 @@
-/* GS Documentos v130 · icono seleccionado */
-.logo-img{
+/* GS Documentos v132 · encabezado con icono garantizado */
+.logo-img{display:none!important}
+.head::before{
+  content:""!important;
+  display:block!important;
+  position:static!important;
+  inset:auto!important;
+  z-index:auto!important;
   width:52px!important;
   height:52px!important;
-  object-fit:cover!important;
-  object-position:center!important;
-  border-radius:12px!important;
-  background:#fff!important;
-  box-shadow:none!important;
+  min-width:52px!important;
   flex:0 0 52px!important;
+  border-radius:12px!important;
+  background-color:#fff!important;
+  background-image:url("./gs-docs-icon-192.png?v=gsdoc-v132-header-icon")!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:contain!important;
+  box-shadow:none!important;
 }
 @media(max-width:560px){
-  .logo-img{
+  .head::before{
     width:48px!important;
     height:48px!important;
+    min-width:48px!important;
     flex-basis:48px!important;
   }
 }
