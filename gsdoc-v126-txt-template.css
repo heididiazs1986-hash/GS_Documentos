@@ -1,0 +1,18 @@
+/* GS Documentos v126 · formato TXT */
+.gs126-txt-template{
+  width:auto!important;
+  min-height:40px!important;
+  padding:9px 12px!important;
+  white-space:nowrap;
+  text-decoration:none!important;
+}
+.gs126-txt-template-help{
+  margin:7px 2px 0;
+  color:var(--muted);
+  font:400 10.5px/1.35 Manrope,sans-serif;
+}
+.gs126-txt-template-help b{color:var(--blue)}
+@media(max-width:560px){
+  .txt-row{gap:8px!important}
+  .gs126-txt-template{width:100%!important;justify-content:center}
+}
