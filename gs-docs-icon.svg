@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="GS Documentos">
+  <defs>
+    <linearGradient id="bg" x1="52" y1="30" x2="462" y2="478" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#082D70"/>
+      <stop offset="0.48" stop-color="#0A57B7"/>
+      <stop offset="1" stop-color="#001E57"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="148" y1="143" x2="436" y2="442" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00D8F2"/>
+      <stop offset="1" stop-color="#079CEB"/>
+    </linearGradient>
+    <linearGradient id="orange" x1="112" y1="102" x2="399" y2="408" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF9A17"/>
+      <stop offset="1" stop-color="#FF5A00"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="78" y1="52" x2="334" y2="386" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.78" stop-color="#F7F9FC"/>
+      <stop offset="1" stop-color="#DCEEFF"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#00143A" flood-opacity=".40"/>
+    </filter>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="11" stdDeviation="10" flood-color="#00143A" flood-opacity=".30"/>
+    </filter>
+  </defs>
+
+  <rect x="2" y="2" width="508" height="508" rx="106" fill="url(#bg)"/>
+
+  <g filter="url(#soft)">
+    <rect x="148" y="146" width="292" height="308" rx="24" fill="url(#cyan)"/>
+    <rect x="112" y="104" width="286" height="318" rx="24" fill="url(#orange)"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="78" y="60" width="274" height="328" rx="28" fill="url(#paper)"/>
+    <path d="M143 60h62v54c0 13 10 23 23 23h0c13 0 23-10 23-23V88c0-7-5-12-12-12s-12 5-12 12v23h-18V60h-66z" fill="#062A6A"/>
+    <rect x="120" y="171" width="186" height="21" rx="10.5" fill="#062A6A"/>
+    <rect x="120" y="217" width="186" height="21" rx="10.5" fill="#062A6A"/>
+    <rect x="120" y="263" width="186" height="21" rx="10.5" fill="#062A6A"/>
+    <rect x="120" y="309" width="186" height="21" rx="10.5" fill="#062A6A"/>
+  </g>
+</svg>
