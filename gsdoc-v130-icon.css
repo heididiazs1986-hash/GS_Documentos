@@ -1,0 +1,18 @@
+/* GS Documentos v130 · icono seleccionado */
+.logo-img{
+  width:52px!important;
+  height:52px!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  box-shadow:none!important;
+  flex:0 0 52px!important;
+}
+@media(max-width:560px){
+  .logo-img{
+    width:48px!important;
+    height:48px!important;
+    flex-basis:48px!important;
+  }
+}
