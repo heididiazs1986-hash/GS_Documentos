@@ -2,17 +2,23 @@
   "name": "GS Documentos APPLUS",
   "short_name": "GS Docs",
   "id": "/gs-documentos-applus",
-  "start_url": "/index.html?v=gsdoc-v129-exact-selected-icon",
+  "start_url": "/index.html?v=gsdoc-v130-selected-icon-png",
   "scope": "/",
   "display": "standalone",
   "background_color": "#F9F9FA",
   "theme_color": "#FF6600",
   "icons": [
     {
-      "src": "./gs-docs-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "src": "./gs-docs-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./gs-docs-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
