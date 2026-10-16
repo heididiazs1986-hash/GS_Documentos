@@ -113,7 +113,7 @@ test('GS Editor -> GS Studio ZIP handoff preserves support and opens PDF', { tim
     zip.file('E1.pdf', sourcePdf);
     zip.file('SOPORTES/soporte.txt', 'SOPORTE ORIGINAL');
     const buffer = await zip.generateAsync({ type: 'nodebuffer' });
-    await page.locator('#openEditorBtn').click();
+    await page.locator('[data-tool="editor"]').click();
     const frame = page.frameLocator('#editorFrame');
     await frame.locator('#zipInput').setInputFiles({ name: 'GS_Documentos.zip', mimeType: 'application/zip', buffer });
     await frame.locator('#workspace').waitFor({ state: 'visible' });
