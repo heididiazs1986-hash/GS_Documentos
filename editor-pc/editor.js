@@ -289,6 +289,8 @@ async function saveZip(){
    const blob=await out.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
    const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;
    const base=(S.sourceFile?.name||'GS_Documentos.zip').replace(/\.zip$/i,'');a.download=base+'_CORREGIDO.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+    // GS Studio opt-in bridge: deliver a COPY only when this editor is embedded by the same-origin studio.
+    if(window.parent!==window){window.parent.postMessage({type:'GS_STUDIO_CORRECTED_ZIP',blob,filename:a.download},window.location.origin);}
    toast('ZIP corregido generado. El paquete original no fue modificado.');
  }catch(e){console.error(e);toast('Error al generar el ZIP corregido: '+e.message)}
  finally{els.save.disabled=false;els.save.textContent='Generar ZIP corregido'}
