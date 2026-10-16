@@ -5,6 +5,7 @@
   globalThis.__GS_DOCS_V133_SAFE_CLOSE__=true;
 
   const PENDING_DAY_KEY='GS_DOCS_PENDING_DAY_V133';
+  const EXPORTED_DAY_KEY='GS_DOCS_EXPORTED_DAYS_V134';
   const q=s=>document.querySelector(s);
   let exporting=false;
   let warnedOverdue=false;
@@ -59,8 +60,10 @@
     const list=getRecords();
     if(!list.length)return false;
     const d=ensurePendingDay();
-    return !!d && d<today();
+    const exported=JSON.parse(localStorage.getItem(EXPORTED_DAY_KEY)||'[]');
+    return !!d && d<today() && !exported.includes(d) && !list.some(r=>recordDay(r)===today());
   }
+  function recordDay(r){return parseDay(r?.fecha_hora_creacion)||parseDay(r?.fecha_registro)||'';}
 
   function lockMessage(){
     const d=ensurePendingDay();
@@ -215,8 +218,13 @@
 
   async function exportSafe(){
     if(exporting)return;
-    const list=getRecords();
-    if(!list.length){toast('No hay registros pendientes de exportar');return}
+    const all=getRecords();
+    if(!all.length){toast('No hay registros pendientes de exportar');return}
+    const previous=[...new Set(all.map(recordDay).filter(d=>d && d<today()))].sort();
+    const day=previous[0];
+    if(!day){toast('No hay registros de jornadas anteriores para recuperar');return}
+    const list=all.filter(r=>recordDay(r)===day);
+    if(!list.length)return;
     if(!globalThis.XLSX?.utils || !globalThis.JSZip){
       toast('No fue posible preparar el exporte. Cierra y vuelve a abrir la App.');
       return;
@@ -238,7 +246,7 @@
 
       // JSON de respaldo: conserva el registro completo tal como quedó en la App.
       const json=JSON.stringify(list,null,2);
-      const stamp=today();
+      const stamp=day;
       const tech=safeFilePart(globalThis.state?.jornada?.tecnico_nombre||globalThis.state?.jornada?.nombre_tecnico||'');
       const stem='GS_DOCUMENTOS_'+stamp+(tech?'_'+tech:'');
       const zip=new JSZip();
@@ -247,31 +255,16 @@
       const packageBlob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
       downloadBlob(packageBlob,stem+'.zip');
 
-      const ok=confirm(
-        'Se generó el paquete '+stem+'.zip con el Excel y el JSON.\n\n'+
-        '¿Confirmas que el archivo quedó descargado en tu dispositivo?\n\n'+
-        'Aceptar = cerrar jornada y limpiar pendientes.\n'+
-        'Cancelar = conservar todos los registros para volver a exportar.'
-      );
-
-      if(!ok){
-        toast('Registros conservados. Puedes volver a exportar sin perder información.');
-        return;
+      // Nunca borrar registros operativos. La exportación histórica es copia segura.
+      const ok=confirm('Se inició la descarga del ZIP de '+day+'.\\n\\n¿Verificaste que el archivo existe y contiene Excel y JSON?\\nAceptar registra la jornada como respaldada, SIN BORRAR NINGÚN REGISTRO.\\nCancelar mantiene todo pendiente.');
+      if(ok){
+        const exported=JSON.parse(localStorage.getItem(EXPORTED_DAY_KEY)||'[]');
+        if(!exported.includes(day))exported.push(day);
+        localStorage.setItem(EXPORTED_DAY_KEY,JSON.stringify(exported));
+        toast('✅ Respaldo de '+day+' confirmado; los registros de hoy siguen intactos.');
+      }else{
+        toast('Todos los registros conservados. Puedes repetir la descarga.');
       }
-
-      // Solo limpiar después de confirmación expresa del usuario.
-      if(typeof saveRecords==='function')saveRecords([]);
-      localStorage.removeItem(PENDING_DAY_KEY);
-      try{
-        state.currentRecord=null;
-        state.registration={};
-        state.selected=[];
-        state.form={};
-        if(state.jornada)state.jornada.active=false;
-        if(typeof save==='function')save();
-      }catch(_){}
-      try{if(typeof renderRecords==='function')renderRecords()}catch(_){}
-      toast('✅ Jornada exportada: Excel + JSON');
     }catch(e){
       console.error('GS v133 exportación segura',e);
       toast('No fue posible exportar. Los registros se conservaron completos.');
