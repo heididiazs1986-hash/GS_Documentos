@@ -16,10 +16,10 @@ input[type=file]{max-width:100%}.hidden{display:none}.pages{display:grid;grid-te
 .page{border:1px solid #d5dce5;border-radius:12px;padding:9px;background:#fbfcfe}.page canvas{width:100%;height:auto;max-height:180px;object-fit:contain}
 .page div{font-size:12px;word-break:break-word}.page nav{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.page nav button{cursor:pointer}
 #signCanvas{touch-action:none;border:1px dashed #8b95a4;border-radius:10px;background:white;max-width:100%;width:420px;height:155px}
-#message{min-height:24px;color:#344255}label{font-weight:600}input[type=number]{width:75px;padding:8px}
+#message{min-height:24px;color:#344255}label{font-weight:600}input[type=number]{width:75px;padding:8px}#editorFrame{border:1px solid #d6dde6;border-radius:12px;width:100%;height:780px;display:block;background:white}#editorWorkspace .toolbar{justify-content:flex-start}.page.sign-target{cursor:crosshair;border-color:#ff6900}.page.sign-target:hover{box-shadow:0 0 0 2px #ffd2ad}.note{font-size:12px;color:#64748b}
 </style></head>
 <body><header><div class="logo">GS</div><div><strong>GS Studio</strong><div class="subtitle">Centro de gestión documental · Procesamiento en el navegador</div></div></header>
-<main><section class="hero"><div><span class="orange">GESTIÓN DOCUMENTAL</span><h1>Todos tus documentos en un solo lugar.</h1><p class="subtitle">Sin subir tus archivos a nuestros servidores. Conservamos los originales.</p></div><a class="link" href="../editor-pc/index.html">Abrir GS Editor ↗</a></section>
+<main><section class="hero"><div><span class="orange">GESTIÓN DOCUMENTAL</span><h1>Todos tus documentos en un solo lugar.</h1><p class="subtitle">Sin subir tus archivos a nuestros servidores. Conservamos los originales.</p></div><button class="primary" id="openEditorBtn" type="button">Abrir GS Editor ↗</button></section>
 <section class="tiles" aria-label="Herramientas">
 <button class="tile" data-tool="merge">📚<b>Unir PDF</b><small>Combina documentos y organiza las páginas</small></button>
 <button class="tile" data-tool="images">🖼️<b>Imágenes a PDF</b><small>Convierte JPG y PNG</small></button>
@@ -28,18 +28,19 @@ input[type=file]{max-width:100%}.hidden{display:none}.pages{display:grid;grid-te
 <button class="tile" data-tool="sign">✍️<b>Firmar PDF</b><small>Firma manuscrita visual, sin certificado digital</small></button>
 <button class="tile" data-tool="editor">📝<b>GS Editor</b><small>Abre y corrige paquetes de GS Documentos sin alterar su motor</small></button>
 </section>
-<section class="panel" id="workspace"><span class="orange">HERRAMIENTA ACTIVA</span><h2 id="toolTitle">Unir PDF</h2>
+<section class="panel hidden" id="editorWorkspace"><div class="toolbar"><button class="secondary" id="backToPdf" type="button">← Volver a herramientas PDF</button></div><h2>GS Editor · Corrección de paquetes</h2><p class="subtitle">Corrige los datos y pulsa «Generar ZIP corregido». El ZIP se descargará normalmente y sus PDF pasarán a GS Studio para que puedas organizarlos, unirlos y firmarlos. Los soportes siguen únicamente en el ZIP.</p><iframe id="editorFrame" title="Editor de paquetes GS Documentos" src="../editor-pc/index.html" loading="lazy"></iframe></section><section class="panel" id="workspace"><span class="orange">HERRAMIENTA ACTIVA</span><h2 id="toolTitle">Unir PDF</h2>
 <p id="toolHint" class="subtitle">Selecciona los archivos que deseas trabajar.</p>
 <input id="fileInput" type="file" multiple accept="application/pdf,.pdf">
-<div id="controls" class="toolbar"><button class="secondary" id="clearBtn">Limpiar selección</button></div>
+<div id="controls" class="toolbar"><button class="secondary" id="clearBtn">Limpiar selección</button><button class="secondary hidden" id="signResultBtn" type="button">✍️ Firmar el resultado</button></div>
 <div id="pages" class="pages"></div>
 <div id="signTools" class="hidden"><p><label>Firma manuscrita</label> · dibuja con el mouse o el dedo</p><canvas id="signCanvas" width="840" height="310"></canvas>
 <div class="toolbar"><button class="secondary" id="clearSign">Borrar firma</button><label>Página <input type="number" id="signPage" min="1" value="1"></label><label>X (pt) <input type="number" id="signX" value="60"></label><label>Y (pt, desde abajo) <input type="number" id="signY" value="70"></label><label>Ancho (pt) <input type="number" id="signWidth" min="30" value="150"></label></div>
-<p class="subtitle">También puedes cargar una imagen PNG o JPG de la firma. Verifica la ubicación en el PDF descargado antes de usarlo.</p><input type="file" id="signatureImage" accept="image/png,image/jpeg"></div>
+<p class="subtitle">También puedes cargar una imagen PNG o JPG de la firma. Pulsa sobre la vista previa de una página para colocarla allí o ajusta las coordenadas. Verifica el PDF descargado.</p><input type="file" id="signatureImage" accept="image/png,image/jpeg"></div>
 <div id="splitTools" class="hidden toolbar"><label>Desde <input type="number" id="rangeStart" value="1" min="1"></label><label>Hasta <input type="number" id="rangeEnd" value="1" min="1"></label></div>
 <div class="toolbar"><button class="primary" id="exportBtn" disabled>Generar PDF</button></div><p role="status" id="message"></p>
 </section></main>
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="./studio.js"></script>
 </body></html>
