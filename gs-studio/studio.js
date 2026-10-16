@@ -261,10 +261,118 @@
     const p = coordinates(event); ink.lineTo(p.x, p.y); ink.stroke();
   });
   ['pointerup', 'pointercancel'].forEach(name => signature.addEventListener(name, () => { drawing = false; }));
+  // Photo preparation: pointer-driven crop, optional white-to-alpha conversion.
+  const cropCanvas = $('signatureCrop'), cropContext = cropCanvas.getContext('2d');
+  let cropImage = null, cropBox = null, cropDrag = null;
+  function renderCrop() {
+    if (!cropImage) return;
+    const W = cropCanvas.width, H = cropCanvas.height;
+    cropContext.clearRect(0, 0, W, H);
+    cropContext.drawImage(cropImage, 0, 0, W, H);
+    const r = cropBox;
+    cropContext.fillStyle = 'rgba(18,35,55,.35)';
+    cropContext.fillRect(0, 0, W, r.y); cropContext.fillRect(0, r.y, r.x, r.h);
+    cropContext.fillRect(r.x + r.w, r.y, W-r.x-r.w, r.h);
+    cropContext.fillRect(0, r.y+r.h, W, H-r.y-r.h);
+    cropContext.strokeStyle = '#ff6900'; cropContext.lineWidth = 3;
+    cropContext.strokeRect(r.x, r.y, r.w, r.h);
+    for (const [x,y] of [[r.x,r.y],[r.x+r.w,r.y],[r.x,r.y+r.h],[r.x+r.w,r.y+r.h]]) {
+      cropContext.fillStyle = '#245881'; cropContext.fillRect(x-7,y-7,14,14);
+    }
+  }
+  function cropPoint(event) {
+    const rect = cropCanvas.getBoundingClientRect();
+    return {x: Math.max(0,Math.min(cropCanvas.width,(event.clientX-rect.left)*cropCanvas.width/rect.width)),
+      y: Math.max(0,Math.min(cropCanvas.height,(event.clientY-rect.top)*cropCanvas.height/rect.height))};
+  }
+  cropCanvas.addEventListener('pointerdown', event => {
+    if (!cropImage) return;
+    const p = cropPoint(event), r = cropBox;
+    const corners = [{name:'tl',x:r.x,y:r.y},{name:'tr',x:r.x+r.w,y:r.y},
+      {name:'bl',x:r.x,y:r.y+r.h},{name:'br',x:r.x+r.w,y:r.y+r.h}];
+    const handle = corners.find(c => Math.abs(p.x-c.x)<25 && Math.abs(p.y-c.y)<25);
+    cropDrag = {name: handle?.name || (p.x>=r.x&&p.x<=r.x+r.w&&p.y>=r.y&&p.y<=r.y+r.h?'move':'new'),origin:p,initial:{...r}};
+    cropCanvas.setPointerCapture(event.pointerId);
+  });
+  cropCanvas.addEventListener('pointermove', event => {
+    if (!cropDrag) return;
+    const p = cropPoint(event), d=cropDrag, initial=d.initial, dx=p.x-d.origin.x, dy=p.y-d.origin.y;
+    const minW=25,minH=15,W=cropCanvas.width,H=cropCanvas.height;
+    if (d.name==='move') {
+      cropBox={...initial,x:Math.max(0,Math.min(W-initial.w,initial.x+dx)),y:Math.max(0,Math.min(H-initial.h,initial.y+dy))};
+    } else if(d.name==='new'){
+      cropBox={x:Math.min(d.origin.x,p.x),y:Math.min(d.origin.y,p.y),
+        w:Math.max(minW,Math.abs(p.x-d.origin.x)),h:Math.max(minH,Math.abs(p.y-d.origin.y))};
+      cropBox.w=Math.min(cropBox.w,W-cropBox.x);cropBox.h=Math.min(cropBox.h,H-cropBox.y);
+    } else {
+      const left=d.name.endsWith('l')?Math.min(initial.x+initial.w-minW,Math.max(0,p.x)):initial.x;
+      const top=d.name.startsWith('t')?Math.min(initial.y+initial.h-minH,Math.max(0,p.y)):initial.y;
+      const right=d.name.endsWith('r')?Math.max(initial.x+minW,Math.min(W,p.x)):initial.x+initial.w;
+      const bottom=d.name.startsWith('b')?Math.max(initial.y+minH,Math.min(H,p.y)):initial.y+initial.h;
+      cropBox={x:left,y:top,w:right-left,h:bottom-top};
+    }
+    renderCrop();
+  });
+  for(const action of ['pointerup','pointercancel']) cropCanvas.addEventListener(action,()=>{cropDrag=null});
+  function closeCrop() {cropImage=null;cropDrag=null;$('signatureEditor').classList.add('hidden');}
+  function openCrop(file,source) {
+    if (!file) return;
+    if (!['image/png','image/jpeg'].includes(file.type)) {say('Elige una imagen JPG o PNG.');return}
+    const objectURL=URL.createObjectURL(file), img=new Image();
+    img.onload=()=>{
+      URL.revokeObjectURL(objectURL);
+      cropImage=img;
+      const factor=Math.min(1,720/img.naturalWidth,360/img.naturalHeight);
+      cropCanvas.width=Math.max(1,Math.round(img.naturalWidth*factor));
+      cropCanvas.height=Math.max(1,Math.round(img.naturalHeight*factor));
+      cropBox={x:0,y:0,w:cropCanvas.width,h:cropCanvas.height};
+      $('signatureEditor').classList.remove('hidden');
+      $('cropFeedback').textContent=source+'. Ajusta el recorte y confirma la firma.';
+      renderCrop();
+      $('signatureEditor').scrollIntoView({behavior:'smooth',block:'nearest'});
+    };
+    img.onerror=()=>{URL.revokeObjectURL(objectURL);say('No se pudo abrir la foto de firma.')};
+    img.src=objectURL;
+  }
+  $('cancelSignatureCrop').onclick=()=>{closeCrop();$('signatureImage').value='';$('signatureCamera').value='';};
+  $('removeWhite').onchange=renderCrop;
+  $('whiteTolerance').oninput=renderCrop;
+  $('applySignatureCrop').onclick=async()=>{
+    if(!cropImage||!cropBox)return;
+    const ratioX=cropImage.naturalWidth/cropCanvas.width,ratioY=cropImage.naturalHeight/cropCanvas.height;
+    const box=cropBox,w=Math.max(1,Math.round(box.w*ratioX)),h=Math.max(1,Math.round(box.h*ratioY));
+    const output=document.createElement('canvas');output.width=w;output.height=h;
+    const context=output.getContext('2d',{willReadFrequently:true});
+    context.drawImage(cropImage,box.x*ratioX,box.y*ratioY,box.w*ratioX,box.h*ratioY,0,0,w,h);
+    if($('removeWhite').checked){
+      const pixels=context.getImageData(0,0,w,h),data=pixels.data;
+      const threshold=Number($('whiteTolerance').value);
+      for(let i=0;i<data.length;i+=4){
+        const r=data[i],g=data[i+1],b=data[i+2];
+        // Only neutral bright pixels; colored ink and darker strokes remain visible.
+        const light=Math.min(r,g,b),neutral=Math.max(r,g,b)-light<30;
+        if(neutral){
+          const alpha=255-Math.max(0,Math.min(255,(light-(255-threshold))*255/Math.max(1,threshold)));
+          data[i+3]=Math.round(data[i+3]*alpha/255);
+        }
+      }
+      context.putImageData(pixels,0,0);
+    }
+    const blob=await new Promise(resolve=>output.toBlob(resolve,'image/png'));
+    if(!blob){say('No fue posible preparar la firma.');return;}
+    signatureFile=new File([blob],'firma_preparada.png',{type:'image/png'});
+    signDirty=false;
+    ink.clearRect(0,0,signature.width,signature.height);
+    $('signatureSource').textContent='Firma preparada y lista para insertar. El archivo original no se ha modificado.';
+    $('signatureImage').value='';$('signatureCamera').value='';
+    closeCrop();
+    say('Firma recortada y preparada con éxito.');
+  };
   const resetSignature = () => {
     ink.clearRect(0, 0, signature.width, signature.height);
     signDirty = false;
     signatureFile = null;
+    closeCrop();
     $('signatureImage').value = '';
     $('signatureCamera').value = '';
     $('signatureSource').textContent = 'Firma limpia. Puedes dibujar, cargar una imagen o tomar una fotografía.';
@@ -276,19 +384,8 @@
   };
   $('uploadSignBtn').onclick = () => $('signatureImage').click();
   $('cameraSignBtn').onclick = () => $('signatureCamera').click();
-  function acceptSignature(file, source) {
-    if (!file) return;
-    if (!['image/png', 'image/jpeg'].includes(file.type)) {
-      say('La foto debe estar en JPG o PNG. Selecciona una imagen compatible.');
-      return;
-    }
-    signatureFile = file;
-    signDirty = false;
-    ink.clearRect(0, 0, signature.width, signature.height);
-    $('signatureSource').textContent = source + ': ' + file.name + '. Se insertará esta imagen en el PDF.';
-  }
-  $('signatureImage').addEventListener('change', event => acceptSignature(event.target.files[0], 'Imagen cargada'));
-  $('signatureCamera').addEventListener('change', event => acceptSignature(event.target.files[0], 'Fotografía capturada'));
+  $('signatureImage').addEventListener('change', event => openCrop(event.target.files[0], 'Imagen cargada'));
+  $('signatureCamera').addEventListener('change', event => openCrop(event.target.files[0], 'Fotografía capturada'));
 
   async function appendPage(output, entry) {
     if (entry.type === 'image') {
