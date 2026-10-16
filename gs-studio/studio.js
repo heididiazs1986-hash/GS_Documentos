@@ -251,6 +251,7 @@
       y: (event.clientY - rect.top) * signature.height / rect.height };
   };
   signature.addEventListener('pointerdown', event => {
+    if (signatureFile) { signatureFile = null; $('signatureSource').textContent = 'Firma dibujada. Se usará el trazo manuscrito.'; }
     drawing = true; signature.setPointerCapture(event.pointerId);
     const p = coordinates(event); ink.beginPath(); ink.moveTo(p.x, p.y);
     ink.lineTo(p.x + .1, p.y + .1); ink.stroke(); signDirty = true;
@@ -260,17 +261,34 @@
     const p = coordinates(event); ink.lineTo(p.x, p.y); ink.stroke();
   });
   ['pointerup', 'pointercancel'].forEach(name => signature.addEventListener(name, () => { drawing = false; }));
-  $('clearSign').onclick = () => {
+  const resetSignature = () => {
     ink.clearRect(0, 0, signature.width, signature.height);
-    signDirty = false; signatureFile = null; $('signatureImage').value = '';
+    signDirty = false;
+    signatureFile = null;
+    $('signatureImage').value = '';
+    $('signatureCamera').value = '';
+    $('signatureSource').textContent = 'Firma limpia. Puedes dibujar, cargar una imagen o tomar una fotografía.';
   };
-  $('signatureImage').addEventListener('change', event => {
-    const file = event.target.files[0];
-    if (file && !['image/png', 'image/jpeg'].includes(file.type)) {
-      signatureFile = null; say('La firma debe ser PNG o JPG.'); return;
+  $('clearSign').onclick = resetSignature;
+  $('drawSignBtn').onclick = () => {
+    resetSignature();
+    $('signatureSource').textContent = 'Dibuja tu firma con el dedo, lápiz táctil o mouse.';
+  };
+  $('uploadSignBtn').onclick = () => $('signatureImage').click();
+  $('cameraSignBtn').onclick = () => $('signatureCamera').click();
+  function acceptSignature(file, source) {
+    if (!file) return;
+    if (!['image/png', 'image/jpeg'].includes(file.type)) {
+      say('La foto debe estar en JPG o PNG. Selecciona una imagen compatible.');
+      return;
     }
-    signatureFile = file || null;
-  });
+    signatureFile = file;
+    signDirty = false;
+    ink.clearRect(0, 0, signature.width, signature.height);
+    $('signatureSource').textContent = source + ': ' + file.name + '. Se insertará esta imagen en el PDF.';
+  }
+  $('signatureImage').addEventListener('change', event => acceptSignature(event.target.files[0], 'Imagen cargada'));
+  $('signatureCamera').addEventListener('change', event => acceptSignature(event.target.files[0], 'Fotografía capturada'));
 
   async function appendPage(output, entry) {
     if (entry.type === 'image') {
