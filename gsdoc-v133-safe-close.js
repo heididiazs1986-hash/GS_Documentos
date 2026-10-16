@@ -56,14 +56,16 @@
     return d;
   }
 
-  function isOverdue(){
-    const list=getRecords();
-    if(!list.length)return false;
-    const d=ensurePendingDay();
-    const exported=JSON.parse(localStorage.getItem(EXPORTED_DAY_KEY)||'[]');
-    return !!d && d<today() && !exported.includes(d) && !list.some(r=>recordDay(r)===today());
+  // No interrumpir trabajo de campo mientras existan respaldos históricos pendientes.
+  // La recuperación es una COPIA: nunca elimina registros ni bloquea capturas.
+  function isOverdue(){return false;}
+  function recordDay(r){
+    for(const key of ['fecha_hora_creacion','fecha_registro','Fecha de registro','fecha_de_registro','created_at','createdAt','fecha']){
+      const day=parseDay(r?.[key]);
+      if(day)return day;
+    }
+    return '';
   }
-  function recordDay(r){return parseDay(r?.fecha_registro)||parseDay(r?.fecha_hora_creacion)||'';}
 
   function lockMessage(){
     const d=ensurePendingDay();
@@ -221,8 +223,8 @@
     const all=getRecords();
     if(!all.length){toast('No hay registros pendientes de exportar');return}
     const previous=[...new Set(all.map(recordDay).filter(d=>d && d<today()))].sort();
-    const day=previous[0];
-    if(!day){toast('No hay registros de jornadas anteriores para recuperar');return}
+    const day=previous.includes('2026-10-14')?'2026-10-14':previous[0];
+    if(!day){toast('No se identificaron registros anteriores con fecha verificable. No se modificó ningún dato.');return}
     const list=all.filter(r=>recordDay(r)===day);
     if(!list.length)return;
     if(!globalThis.XLSX?.utils || !globalThis.JSZip){
@@ -238,6 +240,7 @@
     try{
       const headers=specs.map(x=>x[0]);
       const rows=buildExcelRows(list);
+      if(rows.length!==list.length)throw new Error('Conteo de registros inconsistente');
       const ws=XLSX.utils.json_to_sheet(rows,{header:headers});
       ws['!cols']=headers.map(h=>({wch:Math.min(42,Math.max(12,h.length+2))}));
       const wb=XLSX.utils.book_new();
