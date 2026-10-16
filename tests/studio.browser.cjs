@@ -71,6 +71,17 @@ test('GS Studio works with arbitrary PDFs, without opening GS Editor', { timeout
   await fixture(async ({ page, downloadPdf }) => {
     const informe = await pdf('INFORME', 2), contrato = await pdf('CONTRATO', 1);
     const originalInforme = Buffer.from(informe);
+    // Test real drag/drop path with browser-supplied File objects.
+    await page.locator('#fileDropzone').dispatchEvent('drop', {
+      dataTransfer: await page.evaluateHandle(async () => {
+        const transfer = new DataTransfer();
+        const b64 = 'JVBERi0xLjQK';
+        // A deliberately invalid PDF verifies that drag/drop reaches validation rather than browser navigation.
+        transfer.items.add(new File([Uint8Array.from(atob(b64), c => c.charCodeAt(0))], 'invalid.pdf', { type: 'application/pdf' }));
+        return transfer;
+      })
+    });
+    await page.waitForFunction(() => document.querySelector('#message').textContent.includes('Error:'));
     await page.locator('#fileInput').setInputFiles([
       { name: 'informe.pdf', mimeType: 'application/pdf', buffer: informe },
       { name: 'contrato.pdf', mimeType: 'application/pdf', buffer: contrato }
