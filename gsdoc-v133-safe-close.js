@@ -63,7 +63,7 @@
     const exported=JSON.parse(localStorage.getItem(EXPORTED_DAY_KEY)||'[]');
     return !!d && d<today() && !exported.includes(d) && !list.some(r=>recordDay(r)===today());
   }
-  function recordDay(r){return parseDay(r?.fecha_hora_creacion)||parseDay(r?.fecha_registro)||'';}
+  function recordDay(r){return parseDay(r?.fecha_registro)||parseDay(r?.fecha_hora_creacion)||'';}
 
   function lockMessage(){
     const d=ensurePendingDay();
