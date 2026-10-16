@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GS Studio · Gestión documental</title>
+<style>
+:root{font-family:Manrope,system-ui,Arial,sans-serif;color:#1d2736;background:#f7f8fa}*{box-sizing:border-box}
+body{margin:0}header{background:white;border-bottom:1px solid #dce1e7;padding:17px max(22px,calc((100vw - 1120px)/2));display:flex;align-items:center;gap:12px}
+.logo{background:#ff6900;color:white;border-radius:12px;padding:13px;font-weight:800}.subtitle,small{color:#64748b}h1{margin:0;font-size:25px}h2{font-size:20px}
+main{max-width:1120px;margin:30px auto;padding:0 18px}.hero,.panel{background:white;border:1px solid #d6dde6;border-radius:18px;padding:25px;margin-bottom:20px}
+.hero{display:flex;justify-content:space-between;gap:20px;align-items:center}.orange{color:#f60;font-weight:800;font-size:12px;letter-spacing:.09em}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:13px}.tile{background:white;border:1px solid #d6dde6;border-radius:15px;padding:18px;text-align:left;cursor:pointer;color:inherit;font:inherit}
+.tile:hover,.tile:focus{border-color:#f60;outline:2px solid #ffe0c8}.tile b{display:block;margin:8px 0}.tile small{display:block;line-height:1.5}
+button.primary,.link{background:#ff6900;color:white;border:0;border-radius:10px;padding:12px 18px;font-weight:800;cursor:pointer;text-decoration:none;display:inline-block}
+button.secondary{background:white;color:#223;border:1px solid #ccd3de;border-radius:10px;padding:10px 14px;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:15px 0}
+input[type=file]{max-width:100%}.hidden{display:none}.pages{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:10px;margin:14px 0}
+.page{border:1px solid #d5dce5;border-radius:12px;padding:9px;background:#fbfcfe}.page canvas{width:100%;height:auto;max-height:180px;object-fit:contain}
+.page div{font-size:12px;word-break:break-word}.page nav{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.page nav button{cursor:pointer}
+#signCanvas{touch-action:none;border:1px dashed #8b95a4;border-radius:10px;background:white;max-width:100%;width:420px;height:155px}
+#message{min-height:24px;color:#344255}label{font-weight:600}input[type=number]{width:75px;padding:8px}
+</style></head>
+<body><header><div class="logo">GS</div><div><strong>GS Studio</strong><div class="subtitle">Centro de gestión documental · Procesamiento en el navegador</div></div></header>
+<main><section class="hero"><div><span class="orange">GESTIÓN DOCUMENTAL</span><h1>Todos tus documentos en un solo lugar.</h1><p class="subtitle">Sin subir tus archivos a nuestros servidores. Conservamos los originales.</p></div><a class="link" href="../editor-pc/index.html">Abrir GS Editor ↗</a></section>
+<section class="tiles" aria-label="Herramientas">
+<button class="tile" data-tool="merge">📚<b>Unir PDF</b><small>Combina documentos y organiza las páginas</small></button>
+<button class="tile" data-tool="images">🖼️<b>Imágenes a PDF</b><small>Convierte JPG y PNG</small></button>
+<button class="tile" data-tool="organize">🗂️<b>Organizar PDF</b><small>Reordena, gira y elimina páginas</small></button>
+<button class="tile" data-tool="split">✂️<b>Dividir PDF</b><small>Extrae páginas por rango</small></button>
+<button class="tile" data-tool="sign">✍️<b>Firmar PDF</b><small>Firma manuscrita visual, sin certificado digital</small></button>
+<button class="tile" data-tool="editor">📝<b>GS Editor</b><small>Abre y corrige paquetes de GS Documentos sin alterar su motor</small></button>
+</section>
+<section class="panel" id="workspace"><span class="orange">HERRAMIENTA ACTIVA</span><h2 id="toolTitle">Unir PDF</h2>
+<p id="toolHint" class="subtitle">Selecciona los archivos que deseas trabajar.</p>
+<input id="fileInput" type="file" multiple accept="application/pdf,.pdf">
+<div id="controls" class="toolbar"><button class="secondary" id="clearBtn">Limpiar selección</button></div>
+<div id="pages" class="pages"></div>
+<div id="signTools" class="hidden"><p><label>Firma manuscrita</label> · dibuja con el mouse o el dedo</p><canvas id="signCanvas" width="840" height="310"></canvas>
+<div class="toolbar"><button class="secondary" id="clearSign">Borrar firma</button><label>Página <input type="number" id="signPage" min="1" value="1"></label><label>X (pt) <input type="number" id="signX" value="60"></label><label>Y (pt, desde abajo) <input type="number" id="signY" value="70"></label><label>Ancho (pt) <input type="number" id="signWidth" min="30" value="150"></label></div>
+<p class="subtitle">También puedes cargar una imagen PNG o JPG de la firma. Verifica la ubicación en el PDF descargado antes de usarlo.</p><input type="file" id="signatureImage" accept="image/png,image/jpeg"></div>
+<div id="splitTools" class="hidden toolbar"><label>Desde <input type="number" id="rangeStart" value="1" min="1"></label><label>Hasta <input type="number" id="rangeEnd" value="1" min="1"></label></div>
+<div class="toolbar"><button class="primary" id="exportBtn" disabled>Generar PDF</button></div><p role="status" id="message"></p>
+</section></main>
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="./studio.js"></script>
+</body></html>
