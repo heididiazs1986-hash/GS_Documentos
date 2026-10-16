@@ -50,7 +50,7 @@
     if (retain) render();
   }
   document.querySelectorAll('[data-tool]').forEach(button => button.addEventListener('click', () => setTool(button.dataset.tool)));
-  $('openEditorBtn').onclick = () => setTool('editor');
+  $('openToolsBtn').onclick = () => $('workspace').scrollIntoView({ behavior: 'smooth', block: 'start' });
   $('backToPdf').onclick = () => setTool(tool, true);
   $('clearBtn').onclick = clear;
   $('signResultBtn').onclick = () => setTool('sign', true);
