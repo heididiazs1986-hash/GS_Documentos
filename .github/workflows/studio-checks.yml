@@ -1,0 +1,28 @@
+name: GS Studio browser checks
+on:
+  pull_request:
+    paths:
+      - 'gs-studio/**'
+      - 'editor-pc/**'
+      - 'tests/studio.browser.cjs'
+      - '.github/workflows/studio-checks.yml'
+  push:
+    branches: [feature/gs-studio-integration]
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: node --check gs-studio/studio.js && node --check editor-pc/editor.js && node --check tests/studio.browser.cjs
+      - run: node --test tests/studio.browser.cjs
+      - run: npm test
+      - run: npm run test:browser
