@@ -39,6 +39,7 @@
     $('signResultBtn').classList.toggle('hidden', !(next === 'merge' || next === 'organize') || !pages.length);
     $('fileInput').multiple = next === 'images' || next === 'merge';
     $('fileInput').accept = next === 'images' ? 'image/png,image/jpeg,.png,.jpg,.jpeg' : '.pdf,.zip,application/pdf,application/zip';
+    $('dropFormats').textContent = next === 'images' ? 'Admite JPG y PNG' : 'Admite PDF y ZIP con documentos PDF';
     $('toolHint').textContent = next === 'images'
       ? 'Selecciona imágenes JPG o PNG y organízalas antes de generar el PDF.'
       : next === 'sign'
@@ -118,6 +119,43 @@
     try { await readFiles(files, tool === 'merge' && pages.length > 0); }
     catch (error) { say('Error: ' + error.message); }
     finally { $('fileInput').value = ''; }
+  });
+
+  // Same input flow for clicking, dropping files, and dropping folders exposed as files.
+  const dropzone = $('fileDropzone');
+  let dragDepth = 0;
+  dropzone.addEventListener('dragenter', event => {
+    event.preventDefault();
+    dragDepth++;
+    dropzone.classList.add('drag-over');
+  });
+  dropzone.addEventListener('dragover', event => {
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+    dropzone.classList.add('drag-over');
+  });
+  dropzone.addEventListener('dragleave', event => {
+    event.preventDefault();
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (!dragDepth) dropzone.classList.remove('drag-over');
+  });
+  dropzone.addEventListener('drop', async event => {
+    event.preventDefault();
+    event.stopPropagation();
+    dragDepth = 0;
+    dropzone.classList.remove('drag-over');
+    const files = Array.from(event.dataTransfer?.files || []);
+    if (!files.length) { say('Arrastra archivos PDF, ZIP o imágenes según la herramienta.'); return; }
+    say('Abriendo archivos arrastrados…');
+    try { await readFiles(files, (tool === 'merge' || tool === 'images') && pages.length > 0); }
+    catch (error) { say('Error: ' + error.message); }
+  });
+  // Prevent a PDF dropped outside the dropzone from replacing the app in the browser.
+  window.addEventListener('dragover', event => {
+    if (event.dataTransfer?.types?.includes('Files')) event.preventDefault();
+  });
+  window.addEventListener('drop', event => {
+    if (event.dataTransfer?.types?.includes('Files')) event.preventDefault();
   });
 
   function drawPagePreview(entry, canvas) {
