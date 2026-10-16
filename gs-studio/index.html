@@ -17,9 +17,44 @@ button:disabled{opacity:.45;cursor:not-allowed}.toolbar{display:flex;flex-wrap:w
 .page div{font-size:12px;word-break:break-word}.page nav{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.page nav button{cursor:pointer}
 #signCanvas{touch-action:none;border:1px dashed #8b95a4;border-radius:10px;background:white;max-width:100%;width:420px;height:155px}
 #message{min-height:24px;color:#344255}label{font-weight:600}input[type=number]{width:75px;padding:8px}#editorFrame{border:1px solid #d6dde6;border-radius:12px;width:100%;height:780px;display:block;background:white}#editorWorkspace .toolbar{justify-content:flex-start}.page.sign-target{cursor:crosshair;border-color:#ff6900}.page.sign-target:hover{box-shadow:0 0 0 2px #ffd2ad}.note{font-size:12px;color:#64748b}
+/* Responsive UI: desktop, tablet and phone */
+:root{--gs-orange:#ff6900;--gs-blue:#245881;--gs-gray:#64748b}
+.hero{align-items:flex-start}.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
+.tile{min-height:126px}.tile:focus-visible,.dropzone:focus-within{outline:3px solid var(--gs-blue);outline-offset:2px}
+.page nav button{min-width:34px;min-height:34px;border:1px solid #b8c7d7;border-radius:7px;background:white}
+#signTools .toolbar label,#splitTools label{display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap}
+#signCanvas{display:block;aspect-ratio:840/310;height:auto;touch-action:none}
+@media(max-width:750px){
+ header{padding:13px 16px}
+ main{margin:14px auto;padding:0 12px}
+ .hero,.panel{padding:18px;border-radius:15px;margin-bottom:14px}
+ .hero h1{font-size:21px;line-height:1.25}
+ .subtitle{font-size:13px;line-height:1.5}
+ .tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+ .tile{padding:14px;min-height:122px}
+ .tile b{font-size:14px}
+ .tile small{font-size:12px;line-height:1.4}
+ .dropzone{padding:26px 12px}
+ .pages{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .toolbar{gap:9px}
+ button.primary,button.secondary{min-height:44px}
+ #exportBtn{width:100%}
+ #signTools .toolbar label,#splitTools label{font-size:13px}
+ input[type=number]{min-height:42px;width:82px}
+ #editorFrame{height:72vh;min-height:490px}
+}
+@media(max-width:380px){
+ .tiles{gap:8px}.tile{padding:11px;min-height:125px}
+ .pages{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .page{padding:6px}
+}
+@media(hover:none){
+ .tile:hover{outline:none}
+ .dropzone:hover{background:#fbfcfe;border-color:#bdc9d8}
+}
 </style></head>
 <body><header><div class="logo">GS</div><div><strong>GS Studio</strong><div class="subtitle">Centro de gestión documental · Procesamiento en el navegador</div></div></header>
-<main><section class="hero"><div><span class="orange">GESTIÓN DOCUMENTAL</span><h1>Todos tus documentos en un solo lugar.</h1><p class="subtitle">Sin subir tus archivos a nuestros servidores. Conservamos los originales.</p></div><button class="primary" id="openToolsBtn" type="button">Trabajar con PDF ↓</button></section>
+<main><section class="hero"><div><span class="orange">GESTIÓN DOCUMENTAL</span><h1>Todos tus documentos en un solo lugar.</h1><p class="subtitle">Sin subir tus archivos a nuestros servidores. Conservamos los originales.</p></div></section>
 <section class="tiles" aria-label="Herramientas">
 <button class="tile" data-tool="merge">📚<b>Unir PDF</b><small>Combina documentos y organiza las páginas</small></button>
 <button class="tile" data-tool="images">🖼️<b>Imágenes a PDF</b><small>Convierte JPG y PNG</small></button>
@@ -30,7 +65,7 @@ button:disabled{opacity:.45;cursor:not-allowed}.toolbar{display:flex;flex-wrap:w
 </section>
 <section class="panel hidden" id="editorWorkspace"><div class="toolbar"><button class="secondary" id="backToPdf" type="button">← Volver a herramientas PDF</button></div><h2>GS Editor · Corrección de paquetes</h2><p class="subtitle">Corrige los datos y pulsa «Generar ZIP corregido». El ZIP se descargará normalmente y sus PDF pasarán a GS Studio para que puedas organizarlos, unirlos y firmarlos. Los soportes siguen únicamente en el ZIP.</p><iframe id="editorFrame" title="Editor de paquetes GS Documentos" src="../editor-pc/index.html" loading="lazy"></iframe></section><section class="panel" id="workspace"><span class="orange">HERRAMIENTA ACTIVA</span><h2 id="toolTitle">Unir PDF</h2>
 <p id="toolHint" class="subtitle">Selecciona los archivos que deseas trabajar.</p>
-<label class="dropzone" id="fileDropzone" for="fileInput"><span class="drop-symbol" aria-hidden="true">⇧</span><strong>Arrastra tus archivos aquí</strong><small>o haz clic para seleccionarlos desde tu computador</small><small id="dropFormats">Admite PDF y ZIP con documentos PDF</small><input id="fileInput" type="file" multiple accept="application/pdf,.pdf"></label>
+<label class="dropzone" id="fileDropzone" for="fileInput"><span class="drop-symbol" aria-hidden="true">⇧</span><strong>Arrastra tus archivos aquí</strong><small>o toca aquí para seleccionarlos desde tu dispositivo</small><small id="dropFormats">Admite PDF y ZIP con documentos PDF</small><input id="fileInput" type="file" multiple accept="application/pdf,.pdf"></label>
 <div id="controls" class="toolbar"><button class="secondary" id="clearBtn">Limpiar selección</button><button class="secondary hidden" id="signResultBtn" type="button">✍️ Firmar el resultado</button></div>
 <div id="pages" class="pages"></div>
 <div id="signTools" class="hidden"><p><label>Firma manuscrita</label> · dibuja con el mouse o el dedo</p><canvas id="signCanvas" width="840" height="310"></canvas>
