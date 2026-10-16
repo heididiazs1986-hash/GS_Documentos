@@ -18,6 +18,11 @@ button:disabled{opacity:.45;cursor:not-allowed}.toolbar{display:flex;flex-wrap:w
 #signCanvas{touch-action:none;border:1px dashed #8b95a4;border-radius:10px;background:white;max-width:100%;width:420px;height:155px}
 #message{min-height:24px;color:#344255}label{font-weight:600}input[type=number]{width:75px;padding:8px}#editorFrame{border:1px solid #d6dde6;border-radius:12px;width:100%;height:780px;display:block;background:white}#editorWorkspace .toolbar{justify-content:flex-start}.page.sign-target{cursor:crosshair;border-color:#ff6900}.page.sign-target:hover{box-shadow:0 0 0 2px #ffd2ad}.note{font-size:12px;color:#64748b}
 .signature-options button{flex:1;min-width:145px}.signature-options{margin-bottom:12px}
+.signature-editor{border:1px solid #bdc9d8;padding:15px;border-radius:13px;margin:12px 0;background:#fafbfc}
+.signature-preview-frame{max-width:100%;overflow:hidden;margin:10px 0;background:linear-gradient(45deg,#e3e7ed 25%,transparent 25%) 0 0/20px 20px,linear-gradient(45deg,transparent 75%,#e3e7ed 75%) 0 0/20px 20px,#fff}
+#signatureCrop{display:block;width:100%;height:auto;max-height:360px;touch-action:none;cursor:crosshair}
+.signature-editor input[type=range]{width:140px}.signature-editor label{display:flex;align-items:center;gap:8px}
+@media(max-width:750px){.signature-editor .toolbar{flex-direction:column;align-items:stretch}.signature-editor .toolbar button{width:100%}}
 /* Responsive UI: desktop, tablet and phone */
 :root{--gs-orange:#ff6900;--gs-blue:#245881;--gs-gray:#64748b}
 .hero{align-items:flex-start}.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -75,6 +80,14 @@ button:disabled{opacity:.45;cursor:not-allowed}.toolbar{display:flex;flex-wrap:w
 <input type="file" id="signatureImage" accept="image/png,image/jpeg,.png,.jpg,.jpeg" class="hidden" aria-label="Cargar imagen de firma">
 <input type="file" id="signatureCamera" accept="image/*" capture="environment" class="hidden" aria-label="Tomar foto de firma">
 <p id="signatureSource" class="subtitle" role="status">Dibuja con el dedo, lápiz o mouse; también puedes elegir una imagen o una fotografía.</p>
+<div id="signatureEditor" class="hidden signature-editor">
+  <strong>Preparar imagen de firma</strong>
+  <p class="subtitle">Arrastra los bordes del recuadro sobre la imagen para recortar. Puedes mantener el fondo original o retirar el blanco.</p>
+  <div class="signature-preview-frame"><canvas id="signatureCrop" width="720" height="360" aria-label="Vista previa para recortar firma"></canvas></div>
+  <div class="toolbar"><label><input type="checkbox" id="removeWhite" checked> Quitar fondo blanco</label><label>Sensibilidad <input type="range" id="whiteTolerance" min="8" max="75" value="30"></label></div>
+  <div class="toolbar"><button class="primary" type="button" id="applySignatureCrop">Usar firma preparada</button><button class="secondary" type="button" id="cancelSignatureCrop">Cancelar</button></div>
+  <p id="cropFeedback" class="subtitle" role="status"></p>
+</div>
 <div class="toolbar"><button class="secondary" id="clearSign">Borrar firma</button><label>Página <input type="number" id="signPage" min="1" value="1"></label><label>X (pt) <input type="number" id="signX" value="60"></label><label>Y (pt, desde abajo) <input type="number" id="signY" value="70"></label><label>Ancho (pt) <input type="number" id="signWidth" min="30" value="150"></label></div>
 <p class="subtitle">Pulsa sobre la vista previa de una página para ubicar la firma, o ajusta las coordenadas. Antes de guardar, verifica que la fotografía muestre solamente tu firma.</p></div>
 <div id="splitTools" class="hidden toolbar"><label>Desde <input type="number" id="rangeStart" value="1" min="1"></label><label>Hasta <input type="number" id="rangeEnd" value="1" min="1"></label></div>
