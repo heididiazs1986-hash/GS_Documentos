@@ -70,6 +70,7 @@ async function fixture(run) {
 test('GS Studio works with arbitrary PDFs, without opening GS Editor', { timeout: 120000 }, async () => {
   await fixture(async ({ page, downloadPdf }) => {
     const informe = await pdf('INFORME', 2), contrato = await pdf('CONTRATO', 1);
+    const originalInforme = Buffer.from(informe);
     await page.locator('#fileInput').setInputFiles([
       { name: 'informe.pdf', mimeType: 'application/pdf', buffer: informe },
       { name: 'contrato.pdf', mimeType: 'application/pdf', buffer: contrato }
@@ -79,7 +80,7 @@ test('GS Studio works with arbitrary PDFs, without opening GS Editor', { timeout
     const joined = await PDFDocument.load(await downloadPdf());
     assert.equal(joined.getPageCount(), 3);
     assert.equal(joined.getPage(0).getRotation().angle, 90);
-    assert.deepEqual(informe, await pdf('INFORME', 2), 'source PDF must be unchanged');
+    assert.deepEqual(informe, originalInforme, 'source PDF must be unchanged');
 
     await page.locator('[data-tool="split"]').click();
     await page.locator('#fileInput').setInputFiles({ name: 'informe.pdf', mimeType: 'application/pdf', buffer: informe });
