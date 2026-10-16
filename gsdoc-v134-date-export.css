@@ -1,0 +1,37 @@
+/* GS Documentos v134 · exportación por fecha */
+#gs133DayLock{display:none!important}
+.gs134-date-export{margin:8px 0 14px}
+.gs134-lock{
+  margin:0 0 12px;
+  padding:12px 14px;
+  border:1px solid #F3B36B;
+  border-left:5px solid #F7931E;
+  border-radius:12px;
+  background:#FFF7ED;
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+.gs134-lock b{font-weight:800;color:#944800}
+.gs134-lock span{font-size:13px;line-height:1.45;color:#76502B}
+.gs134-picker{
+  padding:12px 14px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--soft);
+}
+.gs134-picker label{display:block;margin-bottom:7px;font-weight:750;color:var(--red2)}
+.gs134-picker select{
+  width:100%;
+  min-height:46px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:var(--card);
+  color:var(--ink);
+  padding:0 12px;
+  font:600 14px Manrope,sans-serif;
+}
+.gs134-picker small{display:block;margin-top:7px;color:var(--muted);font-size:11px}
+body.dark .gs134-lock{background:#35281B;border-color:#73502A}
+body.dark .gs134-lock b{color:#FFB45A}
+body.dark .gs134-lock span{color:#EBC79C}
