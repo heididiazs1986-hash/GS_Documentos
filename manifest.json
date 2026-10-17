@@ -2,7 +2,7 @@
   "name": "GS Documentos APPLUS",
   "short_name": "GS Docs",
   "id": "/gs-documentos-applus",
-  "start_url": "/index.html?v=gsdoc-v134-date-export",
+  "start_url": "/index.html?v=gsdoc-v134-jornada-fix",
   "scope": "/",
   "display": "standalone",
   "background_color": "#F9F9FA",
