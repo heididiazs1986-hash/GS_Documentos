@@ -100,41 +100,26 @@
   function enhanceManualCoordinates(){
     const lat=q('#reg_lat'),lon=q('#reg_lon');
     if(!lat||!lon)return;
-
-    const fromTxt=!!String(state.registration?._txt_selected||'').trim();
-    const precision=q('#reg_precision');
-    let help=q('#gs122CoordHelp');
-
-    if(!fromTxt){
-      lat.readOnly=false;lon.readOnly=false;
-      lat.removeAttribute('readonly');lon.removeAttribute('readonly');
-      lat.classList.add('manual-coordinate');
-      lon.classList.add('manual-coordinate');
-      lat.placeholder='Latitud (Y) · editable';
-      lon.placeholder='Longitud (X) · editable';
-
-      if(!help){
-        help=document.createElement('div');
-        help.id='gs122CoordHelp';
-        help.className='coordinate-entry-help';
-        lon.closest('.gps-row')?.insertAdjacentElement('afterend',help);
-      }
-      if(help)help.innerHTML='<b>Ingreso manual habilitado.</b> Puedes escribir las coordenadas tomadas de las fotos o usar “Capturar GPS”.';
-
-      if(lat.dataset.gs122!=='1'){
-        lat.dataset.gs122='1';
-        lat.addEventListener('blur',()=>normalizeCoordInput(lat,-90,90,'latitud'));
-      }
-      if(lon.dataset.gs122!=='1'){
-        lon.dataset.gs122='1';
-        lon.addEventListener('blur',()=>normalizeCoordInput(lon,-180,180,'longitud'));
-      }
-      if(precision)precision.placeholder='Precisión GPS (m) · automática';
-    }else{
-      lat.readOnly=true;lon.readOnly=true;
-      lat.classList.remove('manual-coordinate');lon.classList.remove('manual-coordinate');
-      if(help)help.innerHTML='<b>Coordenadas cargadas desde el TXT.</b> Se conservan bloqueadas para evitar cambios accidentales.';
+    // Campo: coordenadas GPS de solo lectura. La captura se hace con el
+    // botón GPS existente; no alterar sus listeners ni los valores precargados.
+    for(const el of [lat,lon]){
+      el.readOnly=true;
+      el.setAttribute('readonly','');
+      el.classList.remove('manual-coordinate');
+      el.setAttribute('inputmode','none');
+      el.setAttribute('aria-label',(el===lat?'Latitud':'Longitud')+' capturada; no editable');
+      el.placeholder=el===lat?'Latitud (GPS)':'Longitud (GPS)';
     }
+    const precision=q('#reg_precision');
+    if(precision)precision.placeholder='Precisión GPS (m) · automática';
+    let help=q('#gs122CoordHelp');
+    if(!help){
+      help=document.createElement('div');
+      help.id='gs122CoordHelp';
+      help.className='coordinate-entry-help';
+      lon.closest('.gps-row')?.insertAdjacentElement('afterend',help);
+    }
+    if(help)help.textContent='Coordenadas solo por GPS del dispositivo. No se permite digitación en campo.';
   }
 
   function enhance(){
