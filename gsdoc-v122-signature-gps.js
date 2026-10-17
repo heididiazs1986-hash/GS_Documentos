@@ -155,6 +155,24 @@
     }
   },true);
 
+
+  // Impide avanzar con longitudes positivas o coordenadas fuera de rango.
+  // No corrige signos automáticamente: obliga a repetir la captura GPS.
+  document.addEventListener('click',event=>{
+    const b=event.target?.closest?.('button');
+    if(!b || !['regNext','saveRegister'].includes(b.id))return;
+    const lon=q('#reg_lon');
+    if(!lon || !lon.closest('#register'))return;
+    const val=String(lon.value||'').trim().replace(',','.');
+    if(!val)return;
+    const n=Number(val);
+    if(!Number.isFinite(n) || n>=0 || n< -180){
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      toast('Longitud inválida para Colombia. Repite la captura GPS; no se permite corregir manualmente.');
+    }
+  },true);
+
   setTimeout(enhance,0);
   console.info('GS Documentos v122 · firma imagen/cámara y coordenadas manuales activas');
 })();
