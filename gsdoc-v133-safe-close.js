@@ -1,22 +1,18 @@
-/* GS Documentos v133 · exportación segura + cierre obligatorio por jornada */
+/* GS Documentos v134 · exportación por jornada + bloqueo real de pendientes anteriores */
 (()=>{
   'use strict';
-  if(globalThis.__GS_DOCS_V133_SAFE_CLOSE__) return;
-  globalThis.__GS_DOCS_V133_SAFE_CLOSE__=true;
+  if(globalThis.__GS_DOCS_V134_SAFE_CLOSE__) return;
+  globalThis.__GS_DOCS_V134_SAFE_CLOSE__=true;
 
-  const PENDING_DAY_KEY='GS_DOCS_PENDING_DAY_V133';
-  const EXPORTED_DAY_KEY='GS_DOCS_EXPORTED_DAYS_V134';
   const q=s=>document.querySelector(s);
   let exporting=false;
   let warnedOverdue=false;
 
   const pad=n=>String(n).padStart(2,'0');
-  const localDay=d=>{
-    const x=d instanceof Date?d:new Date(d);
-    if(Number.isNaN(x.getTime()))return '';
-    return x.getFullYear()+'-'+pad(x.getMonth()+1)+'-'+pad(x.getDate());
+  const today=()=>{
+    const d=new Date();
+    return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
   };
-  const today=()=>localDay(new Date());
 
   function parseDay(v){
     const s=String(v??'').trim();
@@ -25,98 +21,98 @@
     if(m)return m[1]+'-'+pad(m[2])+'-'+pad(m[3]);
     m=s.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
     if(m)return m[3]+'-'+pad(m[2])+'-'+pad(m[1]);
-    return localDay(s);
+    const d=new Date(s);
+    if(Number.isNaN(d.getTime()))return '';
+    return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
   }
 
   function getRecords(){
     try{return typeof records==='function'?(records()||[]):[]}catch(_){return []}
   }
 
-  function inferRecordDay(list=getRecords()){
-    const candidates=[];
-    for(const r of list){
-      for(const k of ['fecha_hora_creacion','fecha_hora_actualizacion','fecha_registro','fecha de registro','fecha','created_at','createdAt']){
-        const d=parseDay(r?.[k]);
-        if(d)candidates.push(d);
-      }
-    }
-    const jornada=parseDay(globalThis.state?.jornada?.inicio);
-    if(jornada)candidates.push(jornada);
-    return candidates.sort()[0]||'';
-  }
-
-  function ensurePendingDay(){
-    const list=getRecords();
-    if(!list.length){localStorage.removeItem(PENDING_DAY_KEY);return ''}
-    let d=localStorage.getItem(PENDING_DAY_KEY)||'';
-    if(!d){
-      d=inferRecordDay(list)||today();
-      try{localStorage.setItem(PENDING_DAY_KEY,d)}catch(_){}
-    }
-    return d;
-  }
-
-  // No interrumpir trabajo de campo mientras existan respaldos históricos pendientes.
-  // La recuperación es una COPIA: nunca elimina registros ni bloquea capturas.
-  function isOverdue(){return false;}
   function recordDay(r){
-    for(const key of ['fecha_hora_creacion','fecha_registro','Fecha de registro','fecha_de_registro','created_at','createdAt','fecha']){
-      const day=parseDay(r?.[key]);
-      if(day)return day;
+    for(const key of [
+      '_gs_export_day',
+      'fecha_hora_creacion','fecha_hora_actualizacion',
+      'fecha_registro','Fecha de registro','fecha_de_registro',
+      'created_at','createdAt','fecha'
+    ]){
+      const d=parseDay(r?.[key]);
+      if(d)return d;
     }
     return '';
   }
 
-  function lockMessage(){
-    const d=ensurePendingDay();
-    return 'Hay una jornada del '+(d||'día anterior')+' pendiente de exportar. Debes exportarla antes de continuar con una nueva jornada.';
+  function classify(){
+    const list=getRecords();
+    const mapped=list.map((r,i)=>({r,i,day:recordDay(r)}));
+    const known=mapped.filter(x=>x.day);
+    const unknown=mapped.filter(x=>!x.day);
+
+    // Registros legados sin fecha: nunca usamos un marcador viejo para bloquear.
+    // Se consideran de hoy para evitar falsos bloqueos.
+    for(const x of unknown)x.day=today();
+
+    const days=[...new Set(mapped.map(x=>x.day).filter(Boolean))].sort();
+    const previous=days.filter(d=>d<today());
+    return {list,mapped,days,previous};
   }
 
-  function forceRecords(showAlert=true){
-    if(showAlert && !warnedOverdue){
-      warnedOverdue=true;
-      alert(lockMessage());
-    }
-    try{
-      if(typeof show==='function')show('records');
-      if(typeof renderRecords==='function')renderRecords();
-    }catch(_){}
-    setTimeout(renderLockBanner,20);
+  function overdueDay(){
+    return classify().previous[0]||'';
+  }
+
+  function isOverdue(){
+    return !!overdueDay();
+  }
+
+  function lockMessage(){
+    const d=overdueDay();
+    return d
+      ? 'Hay una jornada del '+d+' pendiente de exportar. Debes exportarla antes de continuar con una nueva jornada.'
+      : '';
   }
 
   function renderLockBanner(){
     const card=q('#records .card');
     if(!card)return;
-    let box=q('#gs133DayLock');
-    if(!isOverdue()){
-      box?.remove();
-      return;
-    }
+    let box=q('#gs134DayLock');
+    const msg=lockMessage();
+    if(!msg){box?.remove();return}
     if(!box){
       box=document.createElement('div');
-      box.id='gs133DayLock';
+      box.id='gs134DayLock';
       box.className='gs133-day-lock';
       const h=card.querySelector('h2');
-      if(h)h.insertAdjacentElement('afterend',box);else card.prepend(box);
+      if(h)h.insertAdjacentElement('afterend',box); else card.prepend(box);
     }
-    box.innerHTML='<b>⛔ Jornada anterior pendiente</b><span>'+lockMessage()+'</span>';
+    box.innerHTML='<b>⛔ Jornada anterior pendiente</b><span>'+msg+'</span>';
   }
 
-  // Registrar el día original en cuanto existan registros pendientes.
+  function forceRecords(showAlert=true){
+    const msg=lockMessage();
+    if(showAlert && msg && !warnedOverdue){
+      warnedOverdue=true;
+      alert(msg);
+    }
+    try{
+      if(typeof show==='function')show('records');
+      if(typeof renderRecords==='function')renderRecords();
+    }catch(_){}
+    setTimeout(renderLockBanner,30);
+  }
+
+  // Guardar un día estable en registros nuevos que no lo traigan.
   try{
     if(typeof saveRecords==='function'){
       const oldSaveRecords=saveRecords;
       saveRecords=function(list){
-        const arr=Array.isArray(list)?list:[];
-        if(arr.length){
-          if(!localStorage.getItem(PENDING_DAY_KEY)){
-            const d=inferRecordDay(arr)||today();
-            try{localStorage.setItem(PENDING_DAY_KEY,d)}catch(_){}
-          }
-        }else{
-          localStorage.removeItem(PENDING_DAY_KEY);
-        }
-        return oldSaveRecords.apply(this,arguments);
+        const arr=(Array.isArray(list)?list:[]).map(r=>{
+          if(!r || typeof r!=='object')return r;
+          if(recordDay(r))return r;
+          return {...r,_gs_export_day:today()};
+        });
+        return oldSaveRecords.call(this,arr);
       };
     }
   }catch(_){}
@@ -127,7 +123,7 @@
 
   const specs=[
     ['Orden_RO',['orden_ro','orden','ro']],
-    ['Fecha de registro',['fecha_de_registro','fecha_registro','fecha','fecha_hora_creacion']],
+    ['Fecha de registro',['fecha_de_registro','fecha_registro','fecha','fecha_hora_creacion','_gs_export_day']],
     ['Nombres',['nombres','nombre','usuario']],
     ['Identificación',['identificacion','cedula','documento']],
     ['Contacto',['contacto','celular','telefono']],
@@ -171,8 +167,7 @@
   }
 
   function pick(rec,aliases){
-    const entries=Object.entries(rec||{});
-    const map=new Map(entries.map(([k,v])=>[norm(k),v]));
+    const map=new Map(Object.entries(rec||{}).map(([k,v])=>[norm(k),v]));
     for(const a of aliases){
       const k=norm(a);
       if(map.has(k))return map.get(k);
@@ -194,7 +189,7 @@
       for(const [header,aliases] of specs){
         let v=pick(rec,aliases);
         if(header==='Fecha de registro'){
-          const d=parseDay(v);
+          const d=parseDay(v)||recordDay(rec);
           if(d){
             const [y,m,day]=d.split('-');
             v=day+'/'+m+'/'+y;
@@ -207,91 +202,148 @@
   }
 
   function safeFilePart(v){
-    return String(v||'').trim().replace(/[^A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ_-]+/g,'_').replace(/^_+|_+$/g,'').slice(0,60);
+    return String(v||'').trim()
+      .replace(/[^A-Za-z0-9ÁÉÍÓÚÜÑáéíóúüñ_-]+/g,'_')
+      .replace(/^_+|_+$/g,'').slice(0,60);
   }
 
-  function downloadBlob(blob,name){
+  function triggerDownload(blob,name){
     const a=document.createElement('a');
     const url=URL.createObjectURL(blob);
-    a.href=url;a.download=name;
-    document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),60000);
+    a.href=url;
+    a.download=name;
+    a.style.display='none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},60000);
+  }
+
+  function targetBatch(){
+    const c=classify();
+    if(!c.list.length)return {day:'',records:[],indexes:[],all:c.list};
+    const target=c.previous[0] || today();
+    const indexes=[];
+    const recs=[];
+    c.mapped.forEach((x,idx)=>{
+      if(x.day===target){indexes.push(idx);recs.push(x.r)}
+    });
+    return {day:target,records:recs,indexes,all:c.list};
   }
 
   async function exportSafe(){
     if(exporting)return;
-    const all=getRecords();
-    if(!all.length){toast('No hay registros pendientes de exportar');return}
-    const previous=[...new Set(all.map(recordDay).filter(d=>d && d<today()))].sort();
-    const day=previous.includes('2026-10-14')?'2026-10-14':previous[0];
-    if(!day){toast('No se identificaron registros anteriores con fecha verificable. No se modificó ningún dato.');return}
-    const list=all.filter(r=>recordDay(r)===day);
-    if(!list.length)return;
+    const batch=targetBatch();
+    if(!batch.records.length){
+      toast('No hay registros pendientes de exportar');
+      return;
+    }
     if(!globalThis.XLSX?.utils || !globalThis.JSZip){
       toast('No fue posible preparar el exporte. Cierra y vuelve a abrir la App.');
       return;
     }
 
     exporting=true;
-    const btn=[...document.querySelectorAll('button,.btn')].find(el=>/cerrar\s+y\s+exportar\s+jornada/i.test(el.textContent||''));
+    const btn=[...document.querySelectorAll('button,.btn')]
+      .find(el=>/cerrar\s+y\s+exportar\s+jornada/i.test(el.textContent||''));
     const prev=btn?.textContent;
     if(btn){btn.disabled=true;btn.textContent='Preparando exporte…'}
 
     try{
       const headers=specs.map(x=>x[0]);
-      const rows=buildExcelRows(list);
-      if(rows.length!==list.length)throw new Error('Conteo de registros inconsistente');
+      const rows=buildExcelRows(batch.records);
       const ws=XLSX.utils.json_to_sheet(rows,{header:headers});
       ws['!cols']=headers.map(h=>({wch:Math.min(42,Math.max(12,h.length+2))}));
+
       const wb=XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb,ws,'Registros');
       const xlsx=XLSX.write(wb,{bookType:'xlsx',type:'array'});
 
-      // JSON de respaldo: conserva el registro completo tal como quedó en la App.
-      const json=JSON.stringify(list,null,2);
-      const stamp=day;
-      const tech=safeFilePart(globalThis.state?.jornada?.tecnico_nombre||globalThis.state?.jornada?.nombre_tecnico||'');
-      const stem='GS_DOCUMENTOS_'+stamp+(tech?'_'+tech:'');
+      const json=JSON.stringify(batch.records,null,2);
+      const tech=safeFilePart(
+        globalThis.state?.jornada?.tecnico_nombre||
+        globalThis.state?.jornada?.nombre_tecnico||''
+      );
+      const stem='GS_DOCUMENTOS_'+batch.day+(tech?'_'+tech:'');
       const zip=new JSZip();
       zip.file(stem+'.xlsx',xlsx);
       zip.file(stem+'.json',json);
-      const packageBlob=await zip.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
-      downloadBlob(packageBlob,stem+'.zip');
+      const packageBlob=await zip.generateAsync({
+        type:'blob',
+        compression:'DEFLATE',
+        compressionOptions:{level:6}
+      });
 
-      // Nunca borrar registros operativos. La exportación histórica es copia segura.
-      const ok=confirm('Se inició la descarga del ZIP de '+day+'.\\n\\n¿Verificaste que el archivo existe y contiene Excel y JSON?\\nAceptar registra la jornada como respaldada, SIN BORRAR NINGÚN REGISTRO.\\nCancelar mantiene todo pendiente.');
-      if(ok){
-        const exported=JSON.parse(localStorage.getItem(EXPORTED_DAY_KEY)||'[]');
-        if(!exported.includes(day))exported.push(day);
-        localStorage.setItem(EXPORTED_DAY_KEY,JSON.stringify(exported));
-        toast('✅ Respaldo de '+day+' confirmado; los registros de hoy siguen intactos.');
+      triggerDownload(packageBlob,stem+'.zip');
+
+      const ok=confirm(
+        'Se inició la descarga de '+stem+'.zip con '+batch.records.length+' registro(s).\n\n'+
+        'El ZIP contiene el Excel y el JSON.\n\n'+
+        '¿Confirmas que el archivo quedó descargado?\n\n'+
+        'Aceptar = retirar SOLO esta jornada de pendientes.\n'+
+        'Cancelar = conservarla completa para volver a exportar.'
+      );
+
+      if(!ok){
+        toast('Registros conservados. Puedes volver a exportar.');
+        return;
+      }
+
+      // Elimina exclusivamente los registros del día exportado.
+      const exportedIndexes=new Set(batch.indexes);
+      const remaining=batch.all.filter((_,idx)=>!exportedIndexes.has(idx));
+      if(typeof saveRecords==='function')saveRecords(remaining);
+
+      // Limpiar solo el registro actual si pertenecía al lote exportado.
+      try{
+        const cur=globalThis.state?.currentRecord;
+        if(cur && recordDay(cur)===batch.day){
+          state.currentRecord=null;
+          state.registration={};
+          state.selected=[];
+          state.form={};
+        }
+        if(typeof save==='function')save();
+      }catch(_){}
+
+      warnedOverdue=false;
+      try{if(typeof renderRecords==='function')renderRecords()}catch(_){}
+      setTimeout(renderLockBanner,30);
+
+      if(remaining.length){
+        const nextOld=overdueDay();
+        if(nextOld)toast('✅ Jornada '+batch.day+' exportada. Aún queda pendiente '+nextOld+'.');
+        else toast('✅ Jornada '+batch.day+' exportada. Puedes continuar con los registros de hoy.');
       }else{
-        toast('Todos los registros conservados. Puedes repetir la descarga.');
+        toast('✅ Jornada '+batch.day+' exportada y cerrada.');
       }
     }catch(e){
-      console.error('GS v133 exportación segura',e);
-      toast('No fue posible exportar. Los registros se conservaron completos.');
+      console.error('GS v134 exportación segura',e);
+      toast('No fue posible exportar. Ningún registro fue eliminado.');
     }finally{
       exporting=false;
       if(btn){btn.disabled=false;btn.textContent=prev||'📦 Cerrar y exportar jornada'}
-      setTimeout(renderLockBanner,30);
     }
   }
 
-  // Sustituye únicamente el cierre/exporte de jornada por la ruta segura.
+  // Reemplazar el cierre/exporte nativo.
   document.addEventListener('click',e=>{
     const el=e.target?.closest?.('button,.btn');
     if(!el)return;
     const text=String(el.textContent||'').trim();
+
     if(/cerrar\s+y\s+exportar\s+jornada/i.test(text)){
       e.preventDefault();
       e.stopImmediatePropagation();
       exportSafe();
       return;
     }
+
     if(isOverdue()){
-      const allowed=/exportar|registros|volver/i.test(text)||el.closest('#records');
-      if(!allowed){
+      // Dentro de Registros se permite editar/exportar; no iniciar nuevos casos.
+      const newWork=
+        /nuevo\s+registro|registrar|volver\s+al\s+registro\s+actual|realizar\s+documentos/i.test(text) ||
+        el.dataset?.go==='register';
+      if(newWork){
         e.preventDefault();
         e.stopImmediatePropagation();
         forceRecords(true);
@@ -299,15 +351,17 @@
     }
   },true);
 
-  // Si amaneció con una jornada pendiente, no se puede continuar capturando.
   try{
     if(typeof show==='function'){
       const oldShow=show;
       show=function(id){
-        if(isOverdue() && id!=='records'){
+        if(isOverdue() && ['register','jornada','saved','docs','form','supports'].includes(String(id))){
           const r=oldShow.call(this,'records');
           setTimeout(renderLockBanner,0);
-          if(!warnedOverdue){warnedOverdue=true;setTimeout(()=>alert(lockMessage()),20)}
+          if(!warnedOverdue){
+            warnedOverdue=true;
+            setTimeout(()=>alert(lockMessage()),20);
+          }
           return r;
         }
         const r=oldShow.apply(this,arguments);
@@ -338,11 +392,16 @@
     }
   }catch(_){}
 
-  ensurePendingDay();
+  // Borrar marcadores defectuosos de versiones anteriores: ya no se usan.
+  try{
+    localStorage.removeItem('GS_DOCS_PENDING_DAY_V133');
+    localStorage.removeItem('GS_DOCS_EXPORTED_DAYS_V134');
+  }catch(_){}
+
   setTimeout(()=>{
     renderLockBanner();
-    if(isOverdue())forceRecords(true);
+    if(isOverdue())forceRecords(false);
   },120);
 
-  console.info('GS Documentos v133 · exportación segura y cierre obligatorio activos');
+  console.info('GS Documentos v134 · exportación por jornada y bloqueo real activos');
 })();
