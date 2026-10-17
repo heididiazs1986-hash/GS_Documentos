@@ -170,16 +170,41 @@ async function backupEverything(){
       latitud:r.latitud??'',longitud:r.longitud??'',historial_gps:r.gs_historial_gps||[]}));
     zip.file('AUDITORIA_GPS.json',JSON.stringify(audit,null,2));
     if(globalThis.XLSX?.utils){
-      const headers=['Orden_RO','Fecha de registro','Nombres','Identificación','Contacto','Dirección',
-        'localidad','Sector/Barrio','Latitud (Y)','Longitud (X)','Precisión (m)'];
-      const excel=all.map(r=>({
-        'Orden_RO':r.orden_ro||'','Fecha de registro':r.fecha_registro||'',
-        'Nombres':r.nombres||'','Identificación':r.identificacion||'',
-        'Contacto':r.contacto||'','Dirección':r.direccion||'',
-        'localidad':r.localidad||'','Sector/Barrio':r.sector||'',
-        'Latitud (Y)':r.latitud??'','Longitud (X)':r.longitud??'',
-        'Precisión (m)':r.precision??''}));
+      // Conservar el esquema operativo de GS Documentos; los metadatos
+      // de auditoría van en AUDITORIA_GPS.json, no contaminan el Excel.
+      const defs=[
+        ['Orden_RO','orden_ro'],['Fecha de registro','fecha_registro'],
+        ['Nombres','nombres'],['Identificación','identificacion'],
+        ['Contacto','contacto'],['Dirección','direccion'],
+        ['localidad','localidad'],['Sector/Barrio','sector'],
+        ['Tipo Zona','tipo_zona'],['Tipo de población','tipo_poblacion'],
+        ['Documento de propiedad','documento_propiedad'],
+        ['Documentos pendientes','documentos_pendientes'],
+        ['Condiciones de seguridad','condiciones_seguridad'],
+        ['Esquema Particular','esquema_particular'],
+        ['Esquema Contrato','esquema_contrato'],
+        ['Requiere de redes','requiere_redes'],
+        ['Tipo material predio','tipo_material'],
+        ['Plantas','plantas'],['Requiere muro/Pilar','requiere_muro'],
+        ['Requiere uso de GarraWall','garrawall'],
+        ['Requiere uso de arriostre','arriostre'],
+        ['Requiere instalación interna','requiere_interna'],
+        ['Requiere instalación externa','requiere_externa'],
+        ['Elementos requeridos de instalación externa','elementos_externos'],
+        ['Estado técnico','estado_tecnico'],['Observaciones','observaciones'],
+        ['Latitud (Y)','latitud'],['Longitud (X)','longitud'],['Precisión (m)','precision']
+      ];
+      const toCell=v=>{
+        if(v==null)return '';
+        if(Array.isArray(v))return v.join(' | ');
+        if(typeof v==='object')return JSON.stringify(v).slice(0,30000);
+        const text=String(v);
+        return /^data:(image|application)\//i.test(text)?'':text.slice(0,30000);
+      };
+      const headers=defs.map(x=>x[0]);
+      const excel=all.map(r=>Object.fromEntries(defs.map(([label,key])=>[label,toCell(r[key])])));
       const ws=XLSX.utils.json_to_sheet(excel,{header:headers});
+      ws['!cols']=headers.map(h=>({wch:Math.min(40,Math.max(13,h.length+2))}));
       const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Registros');
       zip.file('REGISTROS.xlsx',XLSX.write(wb,{bookType:'xlsx',type:'array'}));
     }
