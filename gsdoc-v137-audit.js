@@ -5,7 +5,7 @@
 if(window.__GS_V137_AUDIT__)return;
 window.__GS_V137_AUDIT__=true;
 const RKEY='GS_DOCS_REGISTROS_V1',SKEY='GS_DOCS_V49';
-const rawSet=Storage.prototype.setItem,rawGet=Storage.prototype.getItem;
+const rawSet=Storage.prototype.setItem,rawGet=Storage.prototype.getItem,rawRemove=Storage.prototype.removeItem;
 let recentGPS=null,draftStartedAt='',exporting=false,gpsHooked=false;
 const now=()=>new Date().toISOString();
 const localDate=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())};
@@ -103,6 +103,14 @@ Storage.prototype.setItem=function(key,value){
   const result=rawSet.call(this,key,JSON.stringify(output));
   if(consumed){recentGPS.used=true;recentGPS=null;draftStartedAt=''}
   return result;
+};
+// Las versiones antiguas podían borrar la lista al cerrar; prohibirlo también por removeItem.
+Storage.prototype.removeItem=function(key){
+  if(this===localStorage&&(key===RKEY||key===SKEY)){
+    console.warn('GS v137: limpieza de datos locales bloqueada',key);
+    return;
+  }
+  return rawRemove.call(this,key);
 };
 function validFieldRecord(){
   const s=state(),r=s.registration||{};
