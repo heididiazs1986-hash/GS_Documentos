@@ -29,7 +29,8 @@ try{
         const tm=new Date(Number(pos.timestamp)||Date.now());
         recentGPS={lat:Number(latitude),lon:Number(longitude),accuracy:Number(accuracy),
           obtainedAt:Number.isFinite(tm.getTime())?tm.toISOString():now(),
-          savedAt:now(),zone:Intl.DateTimeFormat().resolvedOptions().timeZone||'',used:false};
+          savedAt:now(),zone:Intl.DateTimeFormat().resolvedOptions().timeZone||'',
+          order:String(state().registration?.orden_ro||'').trim(),used:false};
         success(pos);
       },error,options);
     };
@@ -64,7 +65,8 @@ Storage.prototype.setItem=function(key,value){
     const r={...entry},old=prior.get(String(r.id_registro||''));
     const field=(r.rol||s.role)==='tecnico';
     const targetId=String(s.editingRecordId||s.currentRecord?.id_registro||'');
-    const newReading=recentGPS&&!recentGPS.used&&coordMatch(r,recentGPS)&&(!old||(targetId&&String(r.id_registro)===targetId));
+    const newReading=recentGPS&&!recentGPS.used&&coordMatch(r,recentGPS)&&
+      recentGPS.order===String(r.orden_ro||'').trim()&&(!old||(targetId&&String(r.id_registro)===targetId));
     if(old){
       if(old.fecha_hora_creacion)r.fecha_hora_creacion=old.fecha_hora_creacion;
       for(const key of ['gs_inicio_captura','gs_origen_coordenadas','gs_gps_fecha_hora_utc',
@@ -117,7 +119,7 @@ function validFieldRecord(){
   if(s.role!=='tecnico')return true;
   const previous=rows().find(x=>x.id_registro&&x.id_registro===(s.editingRecordId||s.currentRecord?.id_registro));
   if(!gpsHooked)return false;
-  if(recentGPS&&!recentGPS.used&&coordMatch(r,recentGPS))return true;
+  if(recentGPS&&!recentGPS.used&&coordMatch(r,recentGPS)&&recentGPS.order===String(r.orden_ro||'').trim())return true;
   return !!previous&&previous.gs_origen_coordenadas==='GPS_DISPOSITIVO'&&
     coordMatch(r,{lat:previous.gs_gps_latitud_original,lon:previous.gs_gps_longitud_original});
 }
@@ -140,7 +142,7 @@ function protectInputs(){
       anchor.parentElement?.append(note);
     }
     const r=s.registration||{};
-    const captured=recentGPS&&!recentGPS.used&&coordMatch(r,recentGPS);
+    const captured=recentGPS&&!recentGPS.used&&coordMatch(r,recentGPS)&&recentGPS.order===String(r.orden_ro||'').trim();
     const prev=rows().find(x=>x.id_registro===(s.editingRecordId||s.currentRecord?.id_registro));
     const src=captured?'GPS del dispositivo (lectura nueva)':
       prev?.gs_origen_coordenadas==='GPS_DISPOSITIVO'?'GPS del dispositivo (registro guardado)':'Sin captura GPS verificable';
