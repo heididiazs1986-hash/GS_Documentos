@@ -1,4 +1,4 @@
-/* GS Documentos v134 · exportación por jornada + bloqueo real de pendientes anteriores */
+/* GS Documentos v139 · exportación sin bucle + cierre seguro por jornada */
 (()=>{
   'use strict';
   if(globalThis.__GS_DOCS_V135_SAFE_BACKUP__) return;
@@ -229,6 +229,54 @@
     return {day:target,records:recs,indexes,all:c.list};
   }
 
+  function confirmDownload(message){
+    return new Promise(resolve=>{
+      document.getElementById('gs139ExportConfirm')?.remove();
+
+      const overlay=document.createElement('div');
+      overlay.id='gs139ExportConfirm';
+      overlay.style.cssText='position:fixed;inset:0;z-index:999999;background:rgba(15,23,42,.48);display:grid;place-items:center;padding:18px';
+
+      const card=document.createElement('div');
+      card.style.cssText='width:min(560px,100%);background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.28);padding:22px;color:#13233A;font-family:Manrope,Arial,sans-serif';
+
+      const text=document.createElement('div');
+      text.style.cssText='white-space:pre-line;line-height:1.55;font-size:14px';
+      text.textContent=message;
+
+      const actions=document.createElement('div');
+      actions.style.cssText='display:flex;gap:10px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap';
+
+      const cancel=document.createElement('button');
+      cancel.type='button';
+      cancel.textContent='Conservar pendiente';
+      cancel.className='btn secondary';
+      cancel.style.cssText='min-width:170px';
+
+      const accept=document.createElement('button');
+      accept.type='button';
+      accept.textContent='Confirmar descarga';
+      accept.className='btn';
+      accept.style.cssText='min-width:170px';
+
+      const finish=value=>{
+        overlay.remove();
+        resolve(value);
+      };
+      cancel.onclick=e=>{e.preventDefault();e.stopPropagation();finish(false)};
+      accept.onclick=e=>{e.preventDefault();e.stopPropagation();finish(true)};
+      overlay.addEventListener('click',e=>{
+        if(e.target===overlay){e.preventDefault();e.stopPropagation()}
+      });
+
+      actions.append(cancel,accept);
+      card.append(text,actions);
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+      setTimeout(()=>accept.focus(),0);
+    });
+  }
+
   async function exportSafe(){
     if(exporting)return;
     const batch=targetBatch();
@@ -274,12 +322,12 @@
 
       triggerDownload(packageBlob,stem+'.zip');
 
-      const ok=confirm(
-        'Se inició la descarga de '+stem+'.zip con '+batch.records.length+' registro(s).\n\n'+
+      const ok=await confirmDownload(
+        'Se inició una sola descarga de '+stem+'.zip con '+batch.records.length+' registro(s).\n\n'+
         'El ZIP contiene el Excel y el JSON.\n\n'+
-        '¿Confirmas que el archivo quedó descargado?\n\n'+
-        'Aceptar = cerrar esta jornada y pasarla al histórico local.\n'+
-        'Cancelar = conservarla como pendiente para volver a exportar.'
+        'Confirma únicamente después de verificar el archivo en Descargas.\n\n'+
+        'Confirmar descarga = cerrar esta jornada y pasarla al histórico local.\n'+
+        'Conservar pendiente = no elimina nada y permite exportarla nuevamente más tarde.'
       );
 
       if(!ok){
@@ -430,5 +478,5 @@
     if(isOverdue())forceRecords(false);
   },120);
 
-  console.info('GS Documentos v134 · exportación por jornada y bloqueo real activos');
+  console.info('GS Documentos v139 · exportación sin bucle y cierre seguro activos');
 })();
