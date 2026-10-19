@@ -5,6 +5,7 @@
   globalThis.__GS_DOCS_V134_SAFE_CLOSE__=true;
 
   const q=s=>document.querySelector(s);
+  const HKEY='GS_DOCS_HISTORICO_V1';
   let exporting=false;
   let warnedOverdue=false;
 
@@ -277,17 +278,71 @@
         'Se inició la descarga de '+stem+'.zip con '+batch.records.length+' registro(s).\n\n'+
         'El ZIP contiene el Excel y el JSON.\n\n'+
         '¿Confirmas que el archivo quedó descargado?\n\n'+
-        'Aceptar = confirmar respaldo SIN BORRAR registros.\n'+
-        'Cancelar = conservar registros y permitir otra descarga.'
+        'Aceptar = cerrar esta jornada y pasarla al histórico local.\n'+
+        'Cancelar = conservarla como pendiente para volver a exportar.'
       );
 
       if(!ok){
-        toast('Registros conservados. Puedes volver a exportar.');
+        toast('Jornada conservada como pendiente. Puedes volver a exportar.');
         return;
       }
 
-      // Respaldo no destructivo: conservar TODOS los datos en el teléfono.
-      toast('✅ Copia de '+batch.day+' generada. Registros conservados sin borrar.');
+      // Conservar una copia histórica local SIN dejar el mismo lote eternamente
+      // en "Pendiente de exportar".
+      const exportedAt=new Date().toISOString();
+      const oldHistory=(()=>{
+        try{
+          const parsed=JSON.parse(localStorage.getItem(HKEY)||'[]');
+          return Array.isArray(parsed)?parsed:[];
+        }catch(_){return []}
+      })();
+      const keyOf=r=>String(r?.id_registro||'').trim() ||
+        [r?.orden_ro||'',r?.fecha_hora_creacion||r?.fecha_registro||'',r?.identificacion||''].join('|');
+      const historyMap=new Map(oldHistory.map(r=>[keyOf(r),r]));
+      for(const rec of batch.records){
+        historyMap.set(keyOf(rec),{
+          ...rec,
+          gs_exportado:true,
+          gs_exportado_en:exportedAt,
+          gs_export_day:batch.day
+        });
+      }
+      localStorage.setItem(HKEY,JSON.stringify([...historyMap.values()]));
+
+      // Sacar SOLO el lote confirmado de la bandeja activa. v137 permite esta
+      // reducción únicamente durante este cierre controlado.
+      const exportedIndexes=new Set(batch.indexes);
+      const remaining=batch.all.filter((_,idx)=>!exportedIndexes.has(idx));
+      globalThis.__GS_ALLOW_ARCHIVE_SHRINK__=true;
+      try{
+        if(typeof saveRecords==='function')saveRecords(remaining);
+      }finally{
+        globalThis.__GS_ALLOW_ARCHIVE_SHRINK__=false;
+      }
+
+      try{
+        const cur=globalThis.state?.currentRecord;
+        if(cur && batch.records.some(r=>String(r?.id_registro||'')===String(cur?.id_registro||''))){
+          state.currentRecord=null;
+          state.registration={};
+          state.selected=[];
+          state.form={};
+        }
+        if(!remaining.length && state.jornada)state.jornada.active=false;
+        if(typeof save==='function')save();
+      }catch(_){}
+
+      warnedOverdue=false;
+      try{if(typeof renderRecords==='function')renderRecords()}catch(_){}
+      setTimeout(renderLockBanner,30);
+
+      if(remaining.length){
+        const nextOld=overdueDay();
+        if(nextOld)toast('✅ Jornada '+batch.day+' cerrada. Aún queda pendiente '+nextOld+'.');
+        else toast('✅ Jornada '+batch.day+' cerrada. Los registros exportados quedaron en histórico local.');
+      }else{
+        toast('✅ Jornada '+batch.day+' exportada y cerrada. Histórico local conservado.');
+      }
     }catch(e){
       console.error('GS v134 exportación segura',e);
       toast('No fue posible exportar. Ningún registro fue eliminado.');
