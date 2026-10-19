@@ -4,13 +4,13 @@
 'use strict';
 if(window.__GS_V137_AUDIT__)return;
 window.__GS_V137_AUDIT__=true;
-const RKEY='GS_DOCS_REGISTROS_V1',SKEY='GS_DOCS_V49';
+const RKEY='GS_DOCS_REGISTROS_V1',SKEY='GS_DOCS_V49',HKEY='GS_DOCS_HISTORICO_V1';
 const rawSet=Storage.prototype.setItem,rawGet=Storage.prototype.getItem,rawRemove=Storage.prototype.removeItem;
 let recentGPS=null,draftStartedAt='',exporting=false,gpsHooked=false;
 const now=()=>new Date().toISOString();
 const localDate=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())};
 const read=(key,fallback)=>{try{return JSON.parse(rawGet.call(localStorage,key)||'null')??fallback}catch(_){return fallback}};
-const state=()=>read(SKEY,{}),rows=()=>read(RKEY,[]);
+const state=()=>read(SKEY,{}),rows=()=>read(RKEY,[]),history=()=>read(HKEY,[]);
 const numeric=n=>n!==null&&n!==''&&Number.isFinite(Number(n));
 const colombia=(lat,lon)=>numeric(lat)&&numeric(lon)&&Number(lat)>=-5&&Number(lat)<=17&&Number(lon)>=-83&&Number(lon)<=-66;
 const coordMatch=(r,g)=>!!g&&colombia(r.latitud,r.longitud)&&Math.abs(Number(r.latitud)-Number(g.lat))<0.00000011&&Math.abs(Number(r.longitud)-Number(g.lon))<0.00000011;
@@ -54,7 +54,7 @@ Storage.prototype.setItem=function(key,value){
   try{incoming=JSON.parse(value)}catch(e){throw new Error('No se pudo interpretar el registro antes de guardarlo')}
   if(!Array.isArray(incoming))throw new Error('Los registros deben ser una lista');
   const previous=rows();
-  if(previous.length&&incoming.length<previous.length){
+  if(previous.length&&incoming.length<previous.length&&!globalThis.__GS_ALLOW_ARCHIVE_SHRINK__){
     throw new Error('Protección de registros: se bloqueó una limpieza automática. Exporta una copia antes de cualquier eliminación.');
   }
   const prior=new Map(previous.map(r=>[String(r.id_registro||''),r]));
@@ -155,7 +155,12 @@ function protectInputs(){
 }
 async function backupEverything(){
   if(exporting)return;
-  const all=rows();if(!all.length){alert('No hay registros guardados para respaldar.');return}
+  const merged=new Map();
+  for(const r of [...history(),...rows()]){
+    const k=String(r?.id_registro||'').trim()||[r?.orden_ro||'',r?.fecha_hora_creacion||r?.fecha_registro||'',r?.identificacion||''].join('|');
+    merged.set(k,r);
+  }
+  const all=[...merged.values()];if(!all.length){alert('No hay registros guardados para respaldar.');return}
   if(typeof JSZip==='undefined'){alert('No se cargó el generador ZIP. No borres registros.');return}
   exporting=true;
   try{
@@ -218,9 +223,8 @@ async function backupEverything(){
 }
 document.addEventListener('click',e=>{
   const btn=e.target?.closest?.('button');if(!btn)return;
-  if(btn.id==='closeJornada'||/cerrar\s+y\s+exportar\s+jornada/i.test(btn.textContent||'')){
-    e.preventDefault();e.stopImmediatePropagation();backupEverything();return;
-  }
+  // El cierre/exporte lo controla v135. Esta capa solo protege auditoría/GPS;
+  // no debe lanzar un segundo respaldo ni competir por el mismo clic.
   if(['saveRegister','saveNoConsentRecord'].includes(btn.id)&&!validFieldRecord()){
     e.preventDefault();e.stopImmediatePropagation();
     alert('Captura el GPS desde el predio antes de guardar. Fecha y coordenadas no pueden digitarse. El registro en curso se conserva.');
