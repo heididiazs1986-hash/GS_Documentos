@@ -77,9 +77,44 @@
 <script src="./gsdoc-v126-txt-template.js?v=gsdoc-v141-single-export-pwa"></script><script src="./gsdoc-v135-historical-backup.js?v=gsdoc-v141-single-export-pwa"></script>\n<script src="./gsdoc-v141-single-export.js?v=gsdoc-v141-single-export-pwa"></script>
 
 <script>
+(() => {
+  'use strict';
+  function ensureSoacha(){
+    const select=document.getElementById('reg_localidad');
+    if(!select) return;
+
+    const current=select.value;
+    const hasSoacha=[...select.options].some(o=>String(o.value||'').trim().toLocaleLowerCase('es-CO')==='soacha');
+    if(!hasSoacha){
+      const opt=document.createElement('option');
+      opt.value='Soacha';
+      opt.textContent='Soacha';
+      select.appendChild(opt);
+    }
+
+    const placeholder=[...select.options].find(o=>!String(o.value||'').trim());
+    const options=[...select.options]
+      .filter(o=>String(o.value||'').trim())
+      .sort((a,b)=>String(a.textContent||a.value).localeCompare(String(b.textContent||b.value),'es',{sensitivity:'base'}));
+
+    select.replaceChildren();
+    if(placeholder) select.appendChild(placeholder);
+    options.forEach(o=>select.appendChild(o));
+
+    if(current && [...select.options].some(o=>o.value===current)) select.value=current;
+  }
+
+  const host=document.getElementById('regHost');
+  if(host) new MutationObserver(ensureSoacha).observe(host,{childList:true,subtree:true});
+  document.addEventListener('DOMContentLoaded',ensureSoacha,{once:true});
+  setTimeout(ensureSoacha,0);
+})();
+</script>
+
+<script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js?v=gsdoc-v141-single-export-pwa', { scope: '/' })
+    navigator.serviceWorker.register('/sw.js?v=gsdoc-v145-soacha-safe', { scope: '/' })
       .then(reg => reg.update().catch(() => {}))
       .catch(err => console.warn('GS Documentos: no se pudo registrar el service worker', err));
   }, { once: true });
