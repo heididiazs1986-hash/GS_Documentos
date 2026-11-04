@@ -77,6 +77,47 @@
 <script src="./gsdoc-v126-txt-template.js?v=gsdoc-v141-single-export-pwa"></script><script src="./gsdoc-v135-historical-backup.js?v=gsdoc-v141-single-export-pwa"></script>\n<script src="./gsdoc-v141-single-export.js?v=gsdoc-v141-single-export-pwa"></script>
 
 <script>
+(() => {
+  'use strict';
+
+  function addSoachaOption() {
+    const select = document.getElementById('reg_localidad');
+    if (!select) return false;
+
+    const exists = [...select.options].some(
+      o => String(o.value || '').trim().toLocaleLowerCase('es-CO') === 'soacha'
+    );
+    if (exists) return true;
+
+    const option = document.createElement('option');
+    option.value = 'Soacha';
+    option.textContent = 'Soacha';
+
+    const options = [...select.options];
+    const before = options.find(o =>
+      String(o.value || '').trim() &&
+      String(o.textContent || o.value).localeCompare('Soacha', 'es', { sensitivity: 'base' }) > 0
+    );
+
+    if (before) select.insertBefore(option, before);
+    else select.appendChild(option);
+
+    return true;
+  }
+
+  if (!addSoachaOption()) {
+    const host = document.getElementById('regHost');
+    if (host) {
+      const observer = new MutationObserver(() => {
+        if (addSoachaOption()) observer.disconnect();
+      });
+      observer.observe(host, { childList: true, subtree: true });
+    }
+  }
+})();
+</script>
+
+<script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js?v=gsdoc-v141-single-export-pwa', { scope: '/' })
