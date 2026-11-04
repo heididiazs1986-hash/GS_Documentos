@@ -8,7 +8,8 @@
     const select=document.getElementById('reg_localidad');
     if(!select) return;
 
-    const selectedValue=String(select.value||state?.registration?.localidad||'').trim();
+    const storedLocality=(typeof state!=='undefined' && state && state.registration) ? state.registration.localidad : '';
+    const selectedValue=String(select.value||storedLocality||'').trim();
     const exists=[...select.options].some(o=>String(o.value).trim().toLocaleLowerCase('es-CO')==='soacha');
 
     if(!exists){
