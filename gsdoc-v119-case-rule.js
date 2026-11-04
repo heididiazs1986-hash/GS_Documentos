@@ -56,12 +56,17 @@
   try{ upperCaseWords=cleanText; }catch(_){}
 
   // Conserva las abreviaturas técnicas de dirección, pero presenta el resto
-  // con ortografía normal.
-  try{
-    const oldNormalize=gs77NormalizeAddress;
-    gs77NormalizeAddress=function(v){ return addressPretty(oldNormalize(v)); };
-    normalizeAddress=gs77NormalizeAddress;
-  }catch(_){}
+  // con ortografía normal. Si el normalizador histórico no existe, usa
+  // directamente el formateador seguro de esta versión.
+  const previousNormalize=(typeof globalThis.gs77NormalizeAddress==='function')
+    ? globalThis.gs77NormalizeAddress
+    : null;
+  const safeNormalizeAddress=function(v){
+    const base=previousNormalize ? previousNormalize(v) : v;
+    return addressPretty(base);
+  };
+  globalThis.gs77NormalizeAddress=safeNormalizeAddress;
+  globalThis.normalizeAddress=safeNormalizeAddress;
 
   // Inicio de jornada: nombre normal, no todo en mayúscula.
   try{
@@ -112,7 +117,7 @@
         state.registration.nombres=titleCase(state.registration.nombres||'');
         state.registration.sector=titleCase(state.registration.sector||'');
         state.registration.localidad=titleCase(state.registration.localidad||'');
-        state.registration.direccion=gs77NormalizeAddress(state.registration.direccion||'');
+        state.registration.direccion=safeNormalizeAddress(state.registration.direccion||'');
         if(typeof renderRegistration==='function')renderRegistration();
         if(typeof save==='function')save();
         return result;
@@ -146,7 +151,7 @@
     if(el.id==='reg_nombres'||el.id==='jornada_nombre')el.value=titleCase(el.value);
     else if(el.id==='reg_sector')el.value=titleCase(el.value);
     else if(el.id==='reg_observaciones')el.value=sentenceCase(el.value);
-    else if(['reg_direccion','cm_dir_radica','retie_dir_constructor'].includes(el.id))el.value=gs77NormalizeAddress(el.value);
+    else if(['reg_direccion','cm_dir_radica','retie_dir_constructor'].includes(el.id))el.value=safeNormalizeAddress(el.value);
   },true);
 
   setTimeout(polishVisible,0);
