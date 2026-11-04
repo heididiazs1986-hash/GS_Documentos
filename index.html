@@ -67,7 +67,7 @@
 <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="./gsdoc-v117-preflight.js?v=gsdoc-v141-single-export-pwa"></script>
-<script src="./gsdoc-v137-audit.js?v=gsdoc-v141-single-export-pwa"></script>
+<script src="./gsdoc-v137-audit.js?v=gsdoc-v148-txt-gps"></script>
 <script src="./app.js?v=gsdoc-v141-single-export-pwa"></script>
 <script src="./gsdoc-v116-hotfix.js?v=gsdoc-v141-single-export-pwa"></script>
 <script src="./gsdoc-v118-presentation.js?v=gsdoc-v141-single-export-pwa"></script>
@@ -120,7 +120,7 @@
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js?v=gsdoc-v147-soacha-stable', { scope: '/' })
+    navigator.serviceWorker.register('/sw.js?v=gsdoc-v148-txt-gps', { scope: '/' })
       .then(reg => reg.update().catch(() => {}))
       .catch(err => console.warn('GS Documentos: no se pudo registrar el service worker', err));
   }, { once: true });
