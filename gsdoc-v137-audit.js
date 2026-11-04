@@ -76,9 +76,17 @@ Storage.prototype.setItem=function(key,value){
       }
     }
     if(!old&&field){
-      if(!gpsHooked||!newReading)throw new Error('Debes capturar el GPS del predio antes de guardar este nuevo registro.');
+      const importedCoords=!newReading&&colombia(r.latitud,r.longitud);
+      if(!newReading&&!importedCoords){
+        throw new Error('Debes capturar el GPS del predio antes de guardar este nuevo registro.');
+      }
       r.fecha_registro=localDate();
       r.gs_inicio_captura=draftStartedAt||r.fecha_hora_creacion||now();
+      if(importedCoords&&!r.gs_origen_coordenadas){
+        r.gs_origen_coordenadas='IMPORTADO_TXT';
+        r.gs_gps_latitud_original=Number(r.latitud);
+        r.gs_gps_longitud_original=Number(r.longitud);
+      }
     }
     if(newReading){
       const reading={fecha_hora_utc:recentGPS.obtainedAt,latitud:recentGPS.lat,
@@ -118,10 +126,14 @@ function validFieldRecord(){
   const s=state(),r=s.registration||{};
   if(s.role!=='tecnico')return true;
   const previous=rows().find(x=>x.id_registro&&x.id_registro===(s.editingRecordId||s.currentRecord?.id_registro));
-  if(!gpsHooked)return false;
   if(recentGPS&&!recentGPS.used&&coordMatch(r,recentGPS)&&recentGPS.order===String(r.orden_ro||'').trim())return true;
-  return !!previous&&previous.gs_origen_coordenadas==='GPS_DISPOSITIVO'&&
-    coordMatch(r,{lat:previous.gs_gps_latitud_original,lon:previous.gs_gps_longitud_original});
+  if(!previous&&colombia(r.latitud,r.longitud))return true;
+  return !!previous&&(
+    (previous.gs_origen_coordenadas==='GPS_DISPOSITIVO'&&
+      coordMatch(r,{lat:previous.gs_gps_latitud_original,lon:previous.gs_gps_longitud_original})) ||
+    (previous.gs_origen_coordenadas==='IMPORTADO_TXT'&&
+      coordMatch(r,{lat:previous.gs_gps_latitud_original,lon:previous.gs_gps_longitud_original}))
+  );
 }
 function protectInputs(){
   const s=state();if(s.role!=='tecnico')return;
@@ -144,8 +156,11 @@ function protectInputs(){
     const r=s.registration||{};
     const captured=recentGPS&&!recentGPS.used&&coordMatch(r,recentGPS)&&recentGPS.order===String(r.orden_ro||'').trim();
     const prev=rows().find(x=>x.id_registro===(s.editingRecordId||s.currentRecord?.id_registro));
+    const imported=!captured&&!prev&&colombia(r.latitud,r.longitud);
     const src=captured?'GPS del dispositivo (lectura nueva)':
-      prev?.gs_origen_coordenadas==='GPS_DISPOSITIVO'?'GPS del dispositivo (registro guardado)':'Sin captura GPS verificable';
+      prev?.gs_origen_coordenadas==='GPS_DISPOSITIVO'?'GPS del dispositivo (registro guardado)':
+      prev?.gs_origen_coordenadas==='IMPORTADO_TXT'?'Coordenadas importadas desde TXT':
+      imported?'Coordenadas importadas desde TXT':'Sin captura GPS verificable';
     const time=captured?recentGPS.obtainedAt:prev?.gs_gps_fecha_hora_utc||'';
     const acc=captured?recentGPS.accuracy:prev?.gs_gps_precision_m;
     const shown='Origen: '+src+' · Fecha/hora GPS (UTC): '+(time||'pendiente')+
@@ -227,7 +242,7 @@ document.addEventListener('click',e=>{
   // no debe lanzar un segundo respaldo ni competir por el mismo clic.
   if(['saveRegister','saveNoConsentRecord'].includes(btn.id)&&!validFieldRecord()){
     e.preventDefault();e.stopImmediatePropagation();
-    alert('Captura el GPS desde el predio antes de guardar. Fecha y coordenadas no pueden digitarse. El registro en curso se conserva.');
+    alert('Este registro no tiene coordenadas válidas. Captura el GPS antes de guardar. Si las coordenadas vienen cargadas desde el TXT, no es necesario repetir la captura. El registro en curso se conserva.');
   }
 },true);
 for(const type of ['input','change']){
