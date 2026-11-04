@@ -96,3 +96,14 @@ ACTUALIZACIÓN v113 · SELECTOR DE USUARIOS TXT
 - Para distinguir homónimos, cada opción muestra NOMBRE · IDENTIFICACIÓN · SECTOR cuando esos datos existen.
 - Al seleccionar un usuario, sus datos se cargan inmediatamente al registro y continúan siendo editables.
 - Se conserva visualmente el usuario seleccionado al volver a renderizar el paso.
+
+
+ACTUALIZACIÓN v150 · SOPORTES: ESCANEAR O CARGAR
+- La pantalla Soportes ahora tiene dos opciones: «Escanear documento» y «Cargar archivos».
+- Escanear: cámara con detección de la hoja en vivo, captura automática al quedar quieta (se puede apagar con «Auto»), linterna si el teléfono la permite, corrección de perspectiva, quitado de sombras y filtros Auto / Original / Grises / B/N.
+- Se pueden escanear varias hojas y se guardan como UN solo PDF dentro de la carpeta SOPORTES, con nombre editable.
+- Si los bordes no se reconocen, se abre el ajuste manual de esquinas con lupa.
+- Cargar archivos: fotos y PDF; ahora SUMA a la lista (antes cada selección reemplazaba la anterior), omite repetidos y renombra archivos con el mismo nombre (p. ej. image.jpg) para que no se pisen dentro del ZIP.
+- Cada soporte se puede quitar con ×; se muestra la cantidad y el peso total.
+- Motor de escaneo compartido con GS Studio (gs-scan-engine.js), sin descargas ni envío de fotos.
+- Archivos nuevos: gsdoc-v150-supports.js / .css y gs-scan-engine.js.
