@@ -80,7 +80,7 @@ Storage.prototype.setItem=function(key,value){
       if(!newReading&&!importedCoords){
         throw new Error('Debes capturar el GPS del predio antes de guardar este nuevo registro.');
       }
-      r.fecha_registro=localDate();
+      r.fecha_registro=String(r.fecha_registro||'').trim()||localDate();
       r.gs_inicio_captura=draftStartedAt||r.fecha_hora_creacion||now();
       if(importedCoords&&!r.gs_origen_coordenadas){
         r.gs_origen_coordenadas='IMPORTADO_TXT';
