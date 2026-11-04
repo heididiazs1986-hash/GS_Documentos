@@ -82,45 +82,45 @@
 
   function addSoachaOption() {
     const select = document.getElementById('reg_localidad');
-    if (!select) return false;
+    if (!select) return;
 
     const exists = [...select.options].some(
       o => String(o.value || '').trim().toLocaleLowerCase('es-CO') === 'soacha'
     );
-    if (exists) return true;
+    if (exists) return;
 
     const option = document.createElement('option');
     option.value = 'Soacha';
     option.textContent = 'Soacha';
 
-    const options = [...select.options];
-    const before = options.find(o =>
+    const before = [...select.options].find(o =>
       String(o.value || '').trim() &&
       String(o.textContent || o.value).localeCompare('Soacha', 'es', { sensitivity: 'base' }) > 0
     );
 
     if (before) select.insertBefore(option, before);
     else select.appendChild(option);
-
-    return true;
   }
 
-  if (!addSoachaOption()) {
-    const host = document.getElementById('regHost');
-    if (host) {
-      const observer = new MutationObserver(() => {
-        if (addSoachaOption()) observer.disconnect();
-      });
-      observer.observe(host, { childList: true, subtree: true });
-    }
-  }
+  // Intentos breves al iniciar/cambiar de paso, sin observar el DOM.
+  [0,150,400,800,1500,2500].forEach(ms => setTimeout(addSoachaOption, ms));
+
+  // Si el formulario vuelve a renderizarse más tarde, se agrega justo antes
+  // de que el usuario abra o enfoque Localidad.
+  document.addEventListener('pointerdown', e => {
+    if (e.target && e.target.id === 'reg_localidad') addSoachaOption();
+  }, true);
+
+  document.addEventListener('focusin', e => {
+    if (e.target && e.target.id === 'reg_localidad') addSoachaOption();
+  }, true);
 })();
 </script>
 
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js?v=gsdoc-v146-address-fix', { scope: '/' })
+    navigator.serviceWorker.register('/sw.js?v=gsdoc-v147-soacha-stable', { scope: '/' })
       .then(reg => reg.update().catch(() => {}))
       .catch(err => console.warn('GS Documentos: no se pudo registrar el service worker', err));
   }, { once: true });
