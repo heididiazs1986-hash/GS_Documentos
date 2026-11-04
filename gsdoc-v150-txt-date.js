@@ -1,8 +1,8 @@
-/* GS Documentos v150 · TXT de 11 columnas con Fecha_RO -> Fecha de registro */
+/* GS Documentos v151 · TXT de 11 columnas con Fecha_RO -> Fecha de registro + compatibilidad 10 columnas */
 (()=>{
   'use strict';
-  if(globalThis.__GS_DOCS_V150_TXT_DATE__) return;
-  globalThis.__GS_DOCS_V150_TXT_DATE__=true;
+  if(globalThis.__GS_DOCS_V151_TXT_DATE__) return;
+  globalThis.__GS_DOCS_V151_TXT_DATE__=true;
 
   const clean=s=>String(s??'').trim();
   const canon=h=>clean(h).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
@@ -41,8 +41,12 @@
     try{return typeof upperCaseWords==='function'?upperCaseWords(v):clean(v)}catch(_){return clean(v)}
   }
 
-  // Nuevo formato oficial:
+  // Formato nuevo (11 columnas):
   // RO/ORDEN | FECHA_RO | NOMBRES | IDENTIFICACION | CONTACTO | DIRECCION |
+  // LOCALIDAD | SECTOR/BARRIO | TIPO ZONA | LATITUD | LONGITUD
+  //
+  // Compatibilidad formato anterior (10 columnas):
+  // RO/ORDEN | NOMBRES | IDENTIFICACION | CONTACTO | DIRECCION |
   // LOCALIDAD | SECTOR/BARRIO | TIPO ZONA | LATITUD | LONGITUD
   try{
     parseTxt=function(text){
@@ -52,18 +56,19 @@
 
       const headRaw=splitLine(lines[0]);
       const head=headRaw.map(canon);
+      const hasDate=head.some(h=>['fecha ro','fecha de registro','fecha registro'].includes(h));
+      const expectedCols=hasDate?11:10;
 
-      if(headRaw.length!==11){
-        throw new Error('El TXT debe tener exactamente 11 columnas separadas por |');
+      if(headRaw.length!==expectedCols){
+        throw new Error('El TXT debe tener 11 columnas (formato actual) o 10 columnas (formato anterior), separadas por |');
       }
 
       const defs=[
         ['orden_ro',['ro orden','orden ro','ro','orden']],
-        ['fecha_registro',['fecha ro','fecha_ro','fecha de registro','fecha registro']],
         ['nombres',['nombres','nombre','nombre usuario','usuario']],
         ['identificacion',['identificacion','cedula','cc']],
         ['contacto',['contacto','celular','telefono']],
-        ['direccion',['direccion','direccion predio','dirección predio']],
+        ['direccion',['direccion','direccion predio']],
         ['localidad',['localidad']],
         ['sector',['sector barrio','sector/barrio','sector','barrio']],
         ['tipo_zona',['tipo zona','tipo_zona','zona']],
@@ -79,11 +84,18 @@
         index[key]=i;
       }
 
+      if(hasDate){
+        const i=head.findIndex(h=>['fecha ro','fecha de registro','fecha registro'].includes(h));
+        if(i<0) throw new Error('Falta la columna Fecha_RO');
+        index.fecha_registro=i;
+      }
+
       return lines.slice(1).map((line,n)=>{
         const cols=splitLine(line);
-        if(cols.length!==11) return null;
+        if(cols.length!==expectedCols) return null;
         const r={_txt:n+1};
         for(const [k,i] of Object.entries(index)) r[k]=cols[i]||'';
+        if(!hasDate) r.fecha_registro='';
         r.orden_ro=clean(r.orden_ro).replace(/\D/g,'').slice(0,10);
         r.fecha_registro=isoDate(r.fecha_registro);
         r.nombres=titleSafe(r.nombres);
@@ -93,7 +105,7 @@
         return r;
       }).filter(Boolean).filter(r=>Object.entries(r).some(([k,v])=>k!=='_txt'&&clean(v)));
     };
-  }catch(e){console.warn('GS v150 no pudo reemplazar parseTxt',e)}
+  }catch(e){console.warn('GS v151 no pudo reemplazar parseTxt',e)}
 
   try{
     if(typeof applyTxtRecord==='function'){
@@ -104,11 +116,13 @@
 
         state.registration=state.registration||{};
         if(rec?.orden_ro) state.registration.orden_ro=clean(rec.orden_ro).replace(/\D/g,'').slice(0,10);
-        if(importedDate) state.registration.fecha_registro=importedDate;
 
-        // Marcas para que auditoría respete el origen del dato importado.
-        state.registration.gs_fecha_origen=importedDate?'IMPORTADO_TXT':'';
-        state.registration.gs_fecha_ro_original=importedDate||'';
+        // Solo sobrescribe la fecha cuando el TXT nuevo realmente trae Fecha_RO.
+        if(importedDate){
+          state.registration.fecha_registro=importedDate;
+          state.registration.gs_fecha_origen='IMPORTADO_TXT';
+          state.registration.gs_fecha_ro_original=importedDate;
+        }
 
         try{if(typeof renderRegistration==='function')renderRegistration()}catch(_){}
         try{
@@ -119,7 +133,7 @@
         return result;
       };
     }
-  }catch(e){console.warn('GS v150 no pudo ajustar applyTxtRecord',e)}
+  }catch(e){console.warn('GS v151 no pudo ajustar applyTxtRecord',e)}
 
-  console.info('GS Documentos v150 · TXT 11 columnas + Fecha_RO activo');
+  console.info('GS Documentos v151 · TXT 11 columnas + Fecha_RO + compatibilidad 10 columnas activo');
 })();
