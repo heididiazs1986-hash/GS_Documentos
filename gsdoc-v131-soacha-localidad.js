@@ -7,17 +7,40 @@
   function addSoachaLocality(){
     const select=document.getElementById('reg_localidad');
     if(!select) return;
+
+    const selectedValue=String(select.value||state?.registration?.localidad||'').trim();
     const exists=[...select.options].some(o=>String(o.value).trim().toLocaleLowerCase('es-CO')==='soacha');
+
     if(!exists){
       const opt=document.createElement('option');
       opt.value='Soacha';
       opt.textContent='Soacha';
-      const placeholder=[...select.options].find(o=>!o.value);
-      if(placeholder && placeholder.nextSibling) select.insertBefore(opt,placeholder.nextSibling);
-      else select.appendChild(opt);
+      select.appendChild(opt);
     }
-    if(String(state?.registration?.localidad||'').trim().toLocaleLowerCase('es-CO')==='soacha'){
-      select.value='Soacha';
+
+    // Mantener "Selecciona..." primero y ordenar TODAS las localidades
+    // alfabéticamente, incluida Soacha.
+    const placeholder=[...select.options].find(o=>!String(o.value||'').trim());
+    const ordered=[...select.options]
+      .filter(o=>String(o.value||'').trim())
+      .sort((a,b)=>String(a.textContent||a.value).localeCompare(
+        String(b.textContent||b.value),
+        'es',
+        {sensitivity:'base'}
+      ));
+
+    select.innerHTML='';
+    if(placeholder) select.appendChild(placeholder);
+    else {
+      const p=document.createElement('option');
+      p.value='';
+      p.textContent='Selecciona...';
+      select.appendChild(p);
+    }
+    ordered.forEach(o=>select.appendChild(o));
+
+    if(selectedValue && [...select.options].some(o=>o.value===selectedValue)){
+      select.value=selectedValue;
     }
   }
 
