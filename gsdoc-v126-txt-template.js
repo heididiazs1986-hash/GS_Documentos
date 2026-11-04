@@ -24,7 +24,7 @@
     if(box && !box.querySelector('.gs126-txt-template-help')){
       const help=document.createElement('div');
       help.className='gs126-txt-template-help';
-      help.innerHTML='Descarga la plantilla con las <b>10 columnas</b> y un ejemplo listo para copiar.';
+      help.innerHTML='Descarga la plantilla con las <b>11 columnas</b> y un ejemplo listo para copiar.';
       row.insertAdjacentElement('afterend',help);
     }
   }
