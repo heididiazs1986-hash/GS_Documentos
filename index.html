@@ -77,7 +77,7 @@
 <script src="./gsdoc-v123-observation.js?v=gsdoc-v141-single-export-pwa"></script>
 <script src="./gsdoc-v126-txt-template.js?v=gsdoc-v141-single-export-pwa"></script><script src="./gsdoc-v135-historical-backup.js?v=gsdoc-v141-single-export-pwa"></script>
 <script src="./gsdoc-v141-single-export.js?v=gsdoc-v141-single-export-pwa"></script>
-<script src="./gsdoc-v149-tech-edit.js?v=gsdoc-v149-tech-edit"></script>\n<script src="./gsdoc-v150-txt-date.js?v=gsdoc-v150-txt-date"></script>
+<script src="./gsdoc-v149-tech-edit.js?v=gsdoc-v149-tech-edit"></script>\n<script src="./gsdoc-v150-txt-date.js?v=gsdoc-v151-txt-date"></script>
 <script src="./gs-scan-engine.js?v=gsdoc-v150-supports"></script>
 <script src="./gsdoc-v150-supports.js?v=gsdoc-v150-supports"></script>
 
@@ -125,7 +125,7 @@
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js?v=gsdoc-v150-txt-date', { scope: '/' })
+    navigator.serviceWorker.register('/sw.js?v=gsdoc-v151-txt-date', { scope: '/' })
       .then(reg => reg.update().catch(() => {}))
       .catch(err => console.warn('GS Documentos: no se pudo registrar el service worker', err));
   }, { once: true });
