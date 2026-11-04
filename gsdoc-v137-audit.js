@@ -137,13 +137,26 @@ function validFieldRecord(){
 }
 function protectInputs(){
   const s=state();if(s.role!=='tecnico')return;
-  const isNew=!s.editingRecordId&&!s.currentRecord?.id_registro;
-  for(const id of ['reg_fecha','reg_lat','reg_lon']){
+
+  // Fecha de registro: debe quedar editable. Si viene del TXT, se respeta;
+  // si no viene, la lógica normal de la app puede usar la fecha actual.
+  const fecha=document.getElementById('reg_fecha');
+  if(fecha){
+    fecha.readOnly=false;
+    fecha.removeAttribute('readonly');
+    fecha.removeAttribute('disabled');
+    if(fecha.getAttribute('inputmode')==='none')fecha.removeAttribute('inputmode');
+
+    const imported=String(s.registration?.fecha_registro||'').trim();
+    if(imported && fecha.value!==imported) fecha.value=imported;
+  }
+
+  // Solo las coordenadas permanecen protegidas contra edición manual.
+  for(const id of ['reg_lat','reg_lon']){
     const el=document.getElementById(id);if(!el)continue;
     if(!el.readOnly)el.readOnly=true;
     if(!el.hasAttribute('readonly'))el.setAttribute('readonly','');
     if(el.getAttribute('inputmode')!=='none')el.setAttribute('inputmode','none');
-    if(id==='reg_fecha'&&isNew&&el.value!==localDate())el.value=localDate();
   }
   const anchor=document.getElementById('gpsBtn');
   if(anchor){
@@ -247,7 +260,7 @@ document.addEventListener('click',e=>{
 },true);
 for(const type of ['input','change']){
   document.addEventListener(type,e=>{
-    if(['reg_fecha','reg_lat','reg_lon'].includes(e.target?.id)&&state().role==='tecnico'){
+    if(['reg_lat','reg_lon'].includes(e.target?.id)&&state().role==='tecnico'){
       e.preventDefault();e.stopImmediatePropagation();protectInputs();
     }
   },true);
