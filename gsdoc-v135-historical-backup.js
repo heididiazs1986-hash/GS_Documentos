@@ -96,7 +96,7 @@
     }
     try{
       if(typeof show==='function')show('records');
-      if(typeof renderRecords==='function')renderRecords();
+      if(typeof renderRecordsScreen==='function')renderRecordsScreen();else if(typeof renderRecords==='function')renderRecords();
     }catch(_){}
     setTimeout(renderLockBanner,30);
   }
@@ -220,16 +220,16 @@
   function targetBatch(){
     const c=classify();
     if(!c.list.length)return {day:'',records:[],indexes:[],all:c.list};
-    const target=c.previous[0] || today();
-    const indexes=[];
-    const recs=[];
-    c.mapped.forEach((x,idx)=>{
-      if(x.day===target){indexes.push(idx);recs.push(x.r)}
-    });
-    return {day:target,records:recs,indexes,all:c.list};
+    // Se exporta TODO lo pendiente en una sola descarga; así, al confirmar, la bandeja queda limpia.
+    const indexes=c.mapped.map((_,idx)=>idx);
+    const recs=c.mapped.map(x=>x.r);
+    const days=c.days;
+    const day=days.length>1?days[0]+'_a_'+days[days.length-1]:(days[0]||today());
+    return {day,days,records:recs,indexes,all:c.list};
   }
 
-  function confirmDownload(message){
+  function confirmDownload(message,labels){
+    labels=Object.assign({cancel:'Conservar pendiente',accept:'Confirmar descarga',extra:''},labels||{});
     return new Promise(resolve=>{
       document.getElementById('gs139ExportConfirm')?.remove();
 
@@ -249,16 +249,25 @@
 
       const cancel=document.createElement('button');
       cancel.type='button';
-      cancel.textContent='Conservar pendiente';
+      cancel.textContent=labels.cancel;
       cancel.className='btn secondary';
       cancel.style.cssText='min-width:170px';
 
       const accept=document.createElement('button');
       accept.type='button';
-      accept.textContent='Confirmar descarga';
+      accept.textContent=labels.accept;
       accept.className='btn';
       accept.style.cssText='min-width:170px';
 
+      let extra=null;
+      if(labels.extra){
+        extra=document.createElement('button');
+        extra.type='button';
+        extra.textContent=labels.extra;
+        extra.className='btn secondary';
+        extra.style.cssText='min-width:170px';
+        extra.onclick=e=>{e.preventDefault();e.stopPropagation();finish('extra')};
+      }
       const finish=value=>{
         overlay.remove();
         resolve(value);
@@ -269,7 +278,7 @@
         if(e.target===overlay){e.preventDefault();e.stopPropagation()}
       });
 
-      actions.append(cancel,accept);
+      if(extra)actions.append(cancel,extra,accept); else actions.append(cancel,accept);
       card.append(text,actions);
       overlay.appendChild(card);
       document.body.appendChild(overlay);
@@ -322,13 +331,26 @@
 
       triggerDownload(packageBlob,stem+'.zip');
 
-      const ok=await confirmDownload(
-        'Se inició una sola descarga de '+stem+'.zip con '+batch.records.length+' registro(s).\n\n'+
-        'El ZIP contiene el Excel y el JSON.\n\n'+
-        'Confirma únicamente después de verificar el archivo en Descargas.\n\n'+
-        'Confirmar descarga = cerrar esta jornada y pasarla al histórico local.\n'+
-        'Conservar pendiente = no elimina nada y permite exportarla nuevamente más tarde.'
-      );
+      let ok=false;
+      for(;;){
+        const first=await confirmDownload(
+          'Se inició la descarga de '+stem+'.zip con '+batch.records.length+' registro(s).\n\n'+
+          'El ZIP contiene el Excel y el JSON.\n\n'+
+          'Confirma únicamente después de verificar el archivo en Descargas.\n\n'+
+          'Confirmar descarga = pasar a la última pregunta y limpiar la jornada.\n'+
+          'Conservar pendiente = no elimina nada.',
+          {extra:'Descargar de nuevo'}
+        );
+        if(first==='extra'){triggerDownload(packageBlob,stem+'.zip');continue}
+        if(!first)break;
+        const sure=await confirmDownload(
+          '¿Estás seguro de que realizaste la descarga de la jornada?\n\n'+
+          'Si respondes Sí, los '+batch.records.length+' registro(s) se quitarán de la app (quedan en el histórico local de respaldo).\n'+
+          'Si respondes No, no se borra nada y podrás volver a verificar.',
+          {cancel:'No, volver a verificar',accept:'Sí, limpiar jornada'}
+        );
+        if(sure===true){ok=true;break}
+      }
 
       if(!ok){
         toast('Jornada conservada como pendiente. Puedes volver a exportar.');
@@ -381,7 +403,7 @@
       }catch(_){}
 
       warnedOverdue=false;
-      try{if(typeof renderRecords==='function')renderRecords()}catch(_){}
+      try{if(typeof renderRecordsScreen==='function')renderRecordsScreen();else if(typeof renderRecords==='function')renderRecords()}catch(_){}
       setTimeout(renderLockBanner,30);
 
       if(remaining.length){
