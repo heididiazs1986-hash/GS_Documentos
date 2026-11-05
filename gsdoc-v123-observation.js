@@ -22,6 +22,33 @@
     const latitud=String(rec.latitud||state.registration?.latitud||state.form?.e1_coord_y||'').trim().replace(',','.');
     const longitud=String(rec.longitud||state.registration?.longitud||state.form?.e1_coord_x||'').trim().replace(',','.');
 
+    const reg=state.registration||{};
+    const val=k=>rec[k]!==undefined&&rec[k]!==null&&rec[k]!==''?rec[k]:reg[k];
+    const list=v=>(Array.isArray(v)?v:(v?String(v).split('|'):[])).map(x=>upper(x)).filter(Boolean);
+    const si=v=>/^s[ií]$/i.test(String(v||'').trim());
+
+    // Lo registrado en el diagnóstico, resumido en el mismo texto.
+    const internaSi=si(val('requiere_interna'));
+    const externaSi=si(val('requiere_externa'));
+    const elementos=list(val('elementos_externos'));
+    const seguridad=list(val('condiciones_seguridad'));
+    const pendientes=list(val('documentos_pendientes')).filter(x=>!/^(NINGUNO|NO APLICA|N\/A)$/.test(x));
+
+    const documentacion=pendientes.length
+      ? 'DOCUMENTOS PENDIENTES: '+pendientes.join(', ')+'.'
+      : 'DOCUMENTACIÓN SE ENCUENTRA AL DÍA.';
+    const interna=internaSi
+      ? 'REQUIERE ADECUACIÓN DE INSTALACIONES INTERNAS.'
+      : 'LAS INSTALACIONES INTERNAS CUMPLEN NORMA VIGENTE.';
+    const externa=externaSi
+      ? 'REQUIERE INSTALACIÓN EXTERNA'+(elementos.length?': '+elementos.join(', '):'')+'.'
+      : 'NO REQUIERE INSTALACIÓN EXTERNA.';
+    const seg=seguridad.length
+      ? 'NOVEDADES DE SEGURIDAD: '+seguridad.join(', ')+'.'
+      : 'SIN NOVEDADES DE SEGURIDAD.';
+    const obra=(!internaSi&&!externaSi&&!seguridad.length&&!pendientes.length)
+      ? 'LAS CONDICIONES DEL PREDIO CUMPLEN NORMA VIGENTE PARA REALIZAR OBRA.' : '';
+
     const partes=[
       'ORDEN PARA DIAGNÓSTICO DE PREDIOS ESPT.',
       'VERIFICACIÓN DEL PREDIO PARA SOLICITUD DE CONEXIÓN.',
@@ -33,8 +60,11 @@
       cc ? 'C.C.: '+cc+'.' : '',
       celular ? 'CELULAR: '+celular+'.' : '',
       (latitud||longitud) ? 'COORDENADAS: LAT '+(latitud||'—')+', LONG '+(longitud||'—')+'.' : '',
-      'DOCUMENTACIÓN SE ENCUENTRA AL DÍA.',
-      'LAS CONDICIONES DEL PREDIO E INSTALACIONES INTERNAS CUMPLEN NORMA VIGENTE PARA REALIZAR OBRA.',
+      documentacion,
+      interna,
+      externa,
+      seg,
+      obra,
       'SE ANEXA REGISTRO FOTOGRÁFICO.'
     ].filter(Boolean);
 
@@ -71,7 +101,7 @@
         '<button type="button" class="btn secondary gs123-copy">📋 Copiar</button>'+
       '</div>'+
       '<textarea class="gs123-observation-text" rows="7" spellcheck="true"></textarea>'+
-      '<div class="gs123-observation-help">Se genera automáticamente con RO/orden, usuario, cédula, celular, dirección, sector, localidad y coordenadas. Puedes editarla antes de copiar.</div>';
+      '<div class="gs123-observation-help">Se genera automáticamente con RO/orden, usuario, cédula, celular, dirección, sector, localidad, coordenadas, instalaciones internas y externas (con sus elementos) y novedades de seguridad. Puedes editarla antes de copiar.</div>';
     wrap.querySelector('.gs123-copy').onclick=()=>copyObservation(wrap.querySelector('textarea'));
     return wrap;
   }
