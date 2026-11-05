@@ -10,7 +10,7 @@
   const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
   const nextFrame=()=>new Promise(r=>requestAnimationFrame(r));
   const say=m=>{try{toast(m)}catch(_){}};
-  const STABLE_TICKS=5;
+  const STABLE_TICKS=3;
   const PDF_SIZES={A4:[595.28,841.89],Carta:[612,792],Oficio:[612,936],Legal:[612,1008]};
   const SOFT_LIMIT=25*1024*1024;
 
@@ -332,9 +332,9 @@
           const moved=S.smoothed?Math.max(...found.corners.map((p,i)=>distance(p,S.smoothed[i]))):1;
           if(!S.smoothed||moved>.08)S.smoothed=found.corners.map(p=>({...p}));
           else S.smoothed=S.smoothed.map((p,i)=>({x:p.x*.5+found.corners[i].x*.5,y:p.y*.5+found.corners[i].y*.5}));
-          S.stable=moved<.012?S.stable+1:0;
+          S.stable=moved<.022?S.stable+1:0;
           S.live=S.smoothed.map(p=>({...p}));S.liveAt=performance.now();
-          shown=S.smoothed;progress=S.auto&&found.confidence>=.45?Math.min(1,S.stable/STABLE_TICKS):0;
+          shown=S.smoothed;progress=S.auto&&found.confidence>=.4?Math.min(1,S.stable/STABLE_TICKS):0;
           if(progress>=1){updateDetection(shown,1);capture();return}
         }else{S.smoothed=null;S.stable=0;S.live=null;S.liveAt=0}
         updateDetection(shown,progress);
