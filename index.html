@@ -81,6 +81,7 @@
 <script src="./gsdoc-v150-txt-date.js?v=gsdoc-v151-txt-date"></script>
 <script src="./gs-scan-engine.js?v=gsdoc-v150-supports"></script>
 <script src="./gsdoc-v150-supports.js?v=gsdoc-v150-supports"></script>
+<script src="./gsdoc-v156-ec-inmel.js"></script>
 
 <script>
 (() => {
@@ -126,7 +127,7 @@
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js?v=gsdoc-v152-date-edit', { scope: '/' })
+    navigator.serviceWorker.register('/sw.js?v=gsdoc-v156-ec-inmel', { scope: '/' })
       .then(reg => reg.update().catch(() => {}))
       .catch(err => console.warn('GS Documentos: no se pudo registrar el service worker', err));
   }, { once: true });
