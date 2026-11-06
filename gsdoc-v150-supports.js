@@ -10,7 +10,8 @@
   const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
   const nextFrame=()=>new Promise(r=>requestAnimationFrame(r));
   const say=m=>{try{toast(m)}catch(_){}};
-  const STABLE_TICKS=3;
+  const STABLE_TICKS=4;           // ≈1 s con la hoja casi quieta antes de la captura automática
+  const STABLE_TICKS_CUT=12;      // si la hoja parece no caber completa, solo se captura sola tras ≈3 s quieta
   const PDF_SIZES={A4:[595.28,841.89],Carta:[612,792],Oficio:[612,936],Legal:[612,1008]};
   const SOFT_LIMIT=25*1024*1024;
 
@@ -314,8 +315,8 @@
     ctx.lineWidth=4;ctx.strokeStyle='#F7931E';ctx.shadowColor='#101b27';ctx.shadowBlur=8;ctx.stroke();ctx.shadowBlur=0;
     pts.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,6,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();ctx.stroke()});
   }
-  function updateDetection(found,progress){
-    setHint(found?(S.auto?(progress>0?'Mantén firme…':'Hoja detectada'):'Hoja detectada · toca capturar'):'Centra la hoja completa en la pantalla');
+  function updateDetection(found,progress,cut){
+    setHint(found?(cut?'Aléjate un poco: la hoja no cabe completa':S.auto?(progress>0?'Mantén firme…':'Hoja detectada'):'Hoja detectada · toca capturar'):'Centra la hoja completa en la pantalla');
     q('[data-role="detect"]').innerHTML=found?'Bordes<br>detectados':'Buscando<br>bordes…';
     q('.gs150-outline').classList.toggle('detected',!!found);
     q('[data-role="ring"]').style.setProperty('--p',String(progress));
@@ -327,17 +328,19 @@
       if(!R||!S||token!==S.token||!S.stream||!v.videoWidth){clearTimeout(timer);return}
       let progress=0,shown=null;
       if(!document.hidden&&!S.capturing)try{
-        const res=Scan().detect(v,{maxSide:280}),found=res&&res.confidence>=.3?res:null;
+        const res=Scan().detect(v,{maxSide:280,prefer:S.smoothed}),found=res&&res.confidence>=.3?res:null,cut=!!(found&&found.cut&&found.cut.length);
         if(found){
           const moved=S.smoothed?Math.max(...found.corners.map((p,i)=>distance(p,S.smoothed[i]))):1;
           if(!S.smoothed||moved>.08)S.smoothed=found.corners.map(p=>({...p}));
           else S.smoothed=S.smoothed.map((p,i)=>({x:p.x*.5+found.corners[i].x*.5,y:p.y*.5+found.corners[i].y*.5}));
-          S.stable=moved<.022?S.stable+1:0;
+          S.stable=moved<.03?S.stable+1:0;
           S.live=S.smoothed.map(p=>({...p}));S.liveAt=performance.now();
-          shown=S.smoothed;progress=S.auto&&found.confidence>=.4?Math.min(1,S.stable/STABLE_TICKS):0;
-          if(progress>=1){updateDetection(shown,1);capture();return}
+          shown=S.smoothed;
+          const need=cut?STABLE_TICKS_CUT:STABLE_TICKS;
+          progress=S.auto&&found.confidence>=.4?(cut&&S.stable<need?0:Math.min(1,S.stable/need)):0;
+          if(progress>=1){updateDetection(shown,1,cut);capture();return}
         }else{S.smoothed=null;S.stable=0;S.live=null;S.liveAt=0}
-        updateDetection(shown,progress);
+        updateDetection(shown,progress,cut);
       }catch(e){console.warn('GS Docs v150 detección:',e)}
       timer=setTimeout(tick,230);
     }
@@ -349,16 +352,26 @@
     if(!S.stream||S.capturing||!v.videoWidth)return;
     S.capturing=true;
     const live=S.live&&performance.now()-S.liveAt<1600?S.live.map(p=>({...p})):null,guide=guideCorners(),aspect=v.videoWidth/v.videoHeight;
+    // Lo que la persona ve en este instante: sirve para ubicar su encuadre dentro de la foto del sensor
+    // (que suele abarcar más escena que la vista previa) o como respaldo si no coinciden.
+    const frame=document.createElement('canvas');frame.width=v.videoWidth;frame.height=v.videoHeight;
+    frame.getContext('2d').drawImage(v,0,0);
     let photo=null;
     if(S.imageCapture)try{photo=await Promise.race([S.imageCapture.takePhoto(),new Promise((_,f)=>setTimeout(()=>f(Error('tiempo')),3500))])}catch(_){photo=null}
-    if(!photo){
-      const t=document.createElement('canvas');t.width=v.videoWidth;t.height=v.videoHeight;
-      t.getContext('2d').drawImage(v,0,0);photo=await makeJpeg(t,.93).catch(()=>null);t.width=t.height=1;
-    }
     navigator.vibrate?.(25);
     stopCamera();
+    let hint={live,guide,aspect};
+    if(photo)try{
+      const small=await canvasFromImage(photo,720),pa=small.width/small.height;
+      const reg=Scan().registerView(frame,small);
+      if(reg)hint={live:live&&Scan().mapToPhoto(reg,live),guide:Scan().mapToPhoto(reg,guide),aspect:pa};
+      else if(Math.abs(pa-aspect)/aspect>=.03)photo=null;   // otro encuadre y sin coincidencia fiable: se usa el cuadro de video
+      small.width=small.height=1;
+    }catch(_){photo=null}
+    if(!photo){photo=await makeJpeg(frame,.93).catch(()=>null);hint={live,guide,aspect}}
+    frame.width=frame.height=1;
     if(!photo){say('No fue posible capturar la foto.');startCamera();return}
-    loadPhoto(photo,{live,guide,aspect});
+    loadPhoto(photo,hint);
   }
 
   /* ── edición de la hoja ── */
@@ -378,10 +391,18 @@
       const res=Scan().detect(S.source,{refine:true}),detected=res&&res.confidence>=.3?res.corners:null;
       const same=hint&&hint.aspect&&Math.abs(S.source.width/S.source.height-hint.aspect)/hint.aspect<.03;
       const live=same?hint.live:null;
-      S.corners=detected||live||(same?hint.guide:null)||defaultCorners();
-      S.automatic=!!detected||!!live;
+      let chosen=detected;
+      if(live){
+        const G=Scan(),liveFit=G.refine(S.source,live);
+        if(!detected)chosen=liveFit;
+        // Si la detección sobre la foto completa abarca mucho más que lo que se veía en pantalla, probablemente
+        // juntó la hoja con otra vecina: se respeta el encuadre de la persona.
+        else if(G.polyIoU(liveFit,detected)<.75&&Math.abs(G.polyArea(detected))>Math.abs(G.polyArea(liveFit))*1.5)chosen=liveFit;
+      }
+      S.corners=chosen||(same?hint.guide:null)||defaultCorners();
+      S.automatic=!!chosen;
       S.filter='enhance';R.querySelectorAll('[data-filter]').forEach(x=>x.classList.toggle('active',x.dataset.filter==='enhance'));
-      const uncertain=!detected&&!live;
+      const uncertain=!chosen;
       q('[data-role="manual"]').hidden=!uncertain;
       if(uncertain)drawCorners();
       await refreshPreview();
