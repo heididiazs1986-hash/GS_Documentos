@@ -25,7 +25,8 @@ html.gs150-lock,html.gs150-lock body{overflow:hidden}
 .gs150-scanner{position:fixed;inset:0;z-index:100000;background:#09131b;color:#fff;display:flex;flex-direction:column;font-family:inherit}
 .gs150-scanner[hidden],.gs150-scanner [hidden]{display:none!important}
 .gs150-cam{position:relative;flex:1;display:flex;flex-direction:column;overflow:hidden}
-.gs150-cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.gs150-cam{background:#000}
+.gs150-cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}   /* contain: se ve el encuadre completo, sin recorte ni zoom aparente */
 .gs150-edges{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
 .gs150-outline{position:absolute;top:18%;left:8%;width:84%;height:59%;border:2px dashed #ffffff70;border-radius:16px;z-index:1;pointer-events:none;box-shadow:0 0 0 200vmax #07121a1c;transition:border-color .15s}
 .gs150-outline.detected{border-color:transparent}

@@ -259,12 +259,13 @@
     showStage('camera');updateCount();
     if(!navigator.mediaDevices?.getUserMedia){q('[data-role="fallback"]').click();return}
     try{
-      const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:2160},height:{ideal:3840}}});
+      const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080},aspectRatio:{ideal:16/9}}});
       if(!R){stream.getTracks().forEach(t=>t.stop());return}
       S.stream=stream;
       const track=stream.getVideoTracks()[0],caps=track.getCapabilities?.()||{};
       const video=q('video');video.srcObject=stream;await video.play();
       q('[data-act="torch"]').hidden=!caps.torch;
+      if(caps.zoom&&caps.zoom.min!=null)track.applyConstraints({advanced:[{zoom:caps.zoom.min}]}).catch(()=>{});   // sin zoom digital: se ve toda la escena
       if(caps.focusMode?.includes?.('continuous'))track.applyConstraints({advanced:[{focusMode:'continuous'}]}).catch(()=>{});
       if(typeof ImageCapture==='function')try{S.imageCapture=new ImageCapture(track)}catch(_){S.imageCapture=null}
       S.capturing=false;S.smoothed=null;S.stable=0;
@@ -298,7 +299,7 @@
   function guideCorners(){
     const panel=q('.gs150-cam').getBoundingClientRect(),guide=q('.gs150-outline').getBoundingClientRect(),v=q('video');
     if(!v.videoWidth||!panel.width)return defaultCorners();
-    const f=Math.max(panel.width/v.videoWidth,panel.height/v.videoHeight),w=v.videoWidth*f,h=v.videoHeight*f,ox=(panel.width-w)/2,oy=(panel.height-h)/2;
+    const f=Math.min(panel.width/v.videoWidth,panel.height/v.videoHeight),w=v.videoWidth*f,h=v.videoHeight*f,ox=(panel.width-w)/2,oy=(panel.height-h)/2;
     const X=x=>clamp(((x-panel.left)-ox)/w,0,1),Y=y=>clamp(((y-panel.top)-oy)/h,0,1);
     return[{x:X(guide.left),y:Y(guide.top)},{x:X(guide.right),y:Y(guide.top)},{x:X(guide.right),y:Y(guide.bottom)},{x:X(guide.left),y:Y(guide.bottom)}];
   }
@@ -308,7 +309,7 @@
     overlay.width=Math.round(w*ratio);overlay.height=Math.round(h*ratio);
     const ctx=overlay.getContext('2d');ctx.scale(ratio,ratio);
     if(!found||!v.videoWidth)return;
-    const f=Math.max(w/v.videoWidth,h/v.videoHeight),iw=v.videoWidth*f,ih=v.videoHeight*f,ox=(w-iw)/2,oy=(h-ih)/2;
+    const f=Math.min(w/v.videoWidth,h/v.videoHeight),iw=v.videoWidth*f,ih=v.videoHeight*f,ox=(w-iw)/2,oy=(h-ih)/2;
     const pts=found.map(p=>({x:ox+p.x*iw,y:oy+p.y*ih}));
     ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.closePath();
     ctx.fillStyle='rgba(247,147,30,'+(.10+.14*progress)+')';ctx.fill();
