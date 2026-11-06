@@ -34,7 +34,7 @@
   async function loadBase(){
     if(!templatePromise){
       templatePromise=Promise.all(Array.from({length:PART_COUNT},async(_,idx)=>{
-        const uri=PATH+String(idx+1).padStart(2,'0')+'.txt?v=gsdoc-v156-ec-inmel';
+        const uri=PATH+String(idx+1).padStart(2,'0')+'.txt';
         const response=await fetch(uri,{cache:'no-store'});
         if(!response.ok)throw new Error('Falta una parte del EC ('+(idx+1)+')');
         return (await response.text()).replace(/\s+/g,'');
