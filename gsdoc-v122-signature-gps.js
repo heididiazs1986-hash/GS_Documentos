@@ -53,7 +53,7 @@
         '<button type="button" class="sig-source-btn" id="gs122Upload">🖼️ Cargar imagen</button>'+
         '<button type="button" class="sig-source-btn" id="gs122Camera">📷 Tomar foto</button>'+
       '</div>'+
-      '<div class="signature-source-help">La imagen se recorta, centra y limpia automáticamente. Solo se guarda la firma procesada.</div>'+
+      '<div class="signature-source-help">Se quita el fondo automáticamente: queda solo la tinta, recortada y centrada, para que se vea natural en el formato. Solo se guarda la firma procesada.</div>'+
       '<input class="hidden-force" id="gs122SignatureFile" type="file" accept="image/png,image/jpeg,image/webp,image/*">'+
       '<input class="hidden-force" id="gs122SignatureCamera" type="file" accept="image/*" capture="environment">';
     capture.parentElement.insertBefore(box,capture);
