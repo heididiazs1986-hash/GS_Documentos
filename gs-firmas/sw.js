@@ -1,5 +1,5 @@
-const CACHE='gs-firmas-v2';
-const APP=['./','./index.html','./styles.css','./app.js','./manifest.json'];
+const CACHE='gs-firmas-v3';
+const APP=['./','./index.html','./styles.css','./app.js','./firma-limpia.js','./manifest.json'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(c=>c.addAll(APP)));

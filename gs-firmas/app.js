@@ -313,6 +313,10 @@ async function normalizeSignatureImage(file){
   const tctx=tmp.getContext('2d',{willReadFrequently:true});
   tctx.drawImage(img,0,0,w,h);
 
+  if(globalThis.GS_FIRMA){
+    try{const lim=await GS_FIRMA.clean(tmp,{asCanvas:true});if(lim){tctx.clearRect(0,0,w,h);tctx.drawImage(lim,0,0,w,h)}}
+    catch(e){console.warn('Limpieza de firma:',e)}
+  }
   const data=tctx.getImageData(0,0,w,h);
   const px=data.data;
   let minX=w,minY=h,maxX=-1,maxY=-1;
