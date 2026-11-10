@@ -1,6 +1,6 @@
 {
-  "name": "GS Documentos",
-  "short_name": "GS Docs",
+  "name": "GS Usuarios",
+  "short_name": "GS Usuarios",
   "id": "/gs-documentos-applus",
   "start_url": "/index.html?v=gsdoc-v141-single-export-pwa",
   "scope": "/",
