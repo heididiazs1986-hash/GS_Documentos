@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>GS Suite · Gestión Social</title>
+<meta name="theme-color" content="#FF6600"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--or:#FF6600;--gr:#C1C7CE;--bl:#79D1FF;--bg:#FEFEFF;--ink:#1B2430;--mut:#5B6675;--card:#fff;--line:#E3E7EC;--sh:0 2px 10px rgba(27,36,48,.07)}
+@media(prefers-color-scheme:dark){:root{--bg:#141A22;--ink:#F2F5F8;--mut:#A7B1BD;--card:#1C2430;--line:#2C3643;--sh:none}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,"Segoe UI",Arial,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+h1,h2,.nm{font-family:"Open Sans","Segoe UI",Arial,sans-serif}
+.wrap{max-width:880px;margin:0 auto;padding:0 16px 40px}
+header{display:flex;align-items:center;gap:12px;padding:18px 0 8px}
+header img.lg{height:30px;width:auto;background:#fff;border-radius:6px;padding:3px 6px}
+header h1{font-size:22px;margin:0;line-height:1.1}header small{display:block;color:var(--mut);font-weight:500;font-size:12.5px;margin-top:2px}
+.sp{flex:1}.ib{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;min-height:44px;padding:0 14px;font:600 14px Manrope,sans-serif;cursor:pointer}
+.ib.p{background:var(--or);border-color:var(--or);color:#fff}
+#q{width:100%;min-height:48px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:0 16px;font:500 16px Manrope,sans-serif;margin:8px 0 6px}
+#q:focus,.ib:focus-visible,.card:focus-visible{outline:3px solid var(--bl);outline-offset:2px}
+h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:22px 2px 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.card{display:flex;gap:14px;align-items:center;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:var(--sh);min-height:84px;transition:transform .12s,border-color .12s}
+.card:active{transform:scale(.98)}.card:hover{border-color:var(--or)}
+.ic{flex:none;width:52px;height:52px;border-radius:15px;display:grid;place-items:center;font-size:26px;background:linear-gradient(135deg,var(--or),#FF8A3D)}
+.ic.b{background:linear-gradient(135deg,#3BA7E0,var(--bl))}.ic.g{background:linear-gradient(135deg,#8E98A6,var(--gr))}
+.tx{min-width:0}.nm{font-weight:700;font-size:16.5px}.ds{font-size:13px;color:var(--mut);margin-top:2px;line-height:1.3}
+.tag{display:inline-block;font-size:11px;font-weight:700;border-radius:99px;padding:2px 8px;margin-top:6px;background:rgba(121,209,255,.25);color:var(--ink)}
+.tag.w{background:rgba(255,102,0,.15)}
+.empty{color:var(--mut);padding:18px 2px}
+#ed{position:fixed;inset:0;background:rgba(10,15,20,.55);display:none;align-items:flex-end;justify-content:center;z-index:9}
+#ed.on{display:flex}.sheet{background:var(--bg);width:100%;max-width:640px;max-height:88vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}
+.sheet h3{margin:0 0 4px;font:700 18px "Open Sans",sans-serif}.sheet p{color:var(--mut);font-size:13.5px;margin:0 0 12px}
+.row{margin-bottom:12px}.row label{display:block;font-weight:700;font-size:13.5px;margin-bottom:4px}
+.row input{width:100%;min-height:46px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:0 12px;font:500 15px Manrope,sans-serif}
+.acts{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;flex-wrap:wrap}
+.foot{color:var(--mut);font-size:12.5px;text-align:center;margin-top:28px;line-height:1.5}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;display:none;z-index:10}
+</style></head>
+<body><div class="wrap">
+<header><img class="lg" src="applus-logo.png" alt="APPLUS+"><div><h1>GS Suite</h1><small>Gestión Social · todas tus aplicaciones</small></div><span class="sp"></span><button class="ib p" id="inst" hidden>Instalar</button><button class="ib" id="cfg" aria-label="Editar direcciones">⚙</button></header>
+<input id="q" type="search" placeholder="Buscar aplicación…" autocomplete="off" aria-label="Buscar aplicación">
+<main id="main"></main>
+<p class="foot" id="foot"></p>
+</div>
+<div id="ed" role="dialog" aria-modal="true"><div class="sheet"><h3>Direcciones de las aplicaciones</h3><p>Si una app cambia de dirección, pégala aquí. Se guarda solo en este dispositivo. Déjala vacía para volver a la dirección original.</p><div id="rows"></div><div class="acts"><button class="ib" id="rst">Restablecer todo</button><button class="ib" id="cls">Cerrar</button><button class="ib p" id="sav">Guardar</button></div></div></div>
+<div id="toast"></div>
+<script>
+/* ===== Catálogo de aplicaciones. Para agregar una app: añade una línea aquí. =====
+   url: dirección por defecto. Las que empiezan con "/" viven en este mismo sitio (GS Docs). */
+var GRUPOS=[
+ {t:'Campo y documentos',apps:[
+  {id:'docs',n:'GS Docs',d:'Formatos ESPT / GSOCIAL: E1, E6, AR, DJ, RETIE, firmas y exportación.',i:'📄',c:'',u:'/index.html'},
+  {id:'firmas',n:'GS Firmas',d:'Firma única de líderes comunales aplicada a los 5 documentos.',i:'✍️',c:'',u:'/gs-firmas/'},
+  {id:'editor',n:'GS Editor',d:'Control de calidad y corrección de paquetes ZIP de GS Docs.',i:'🛠️',c:'g',u:'/editor-pc/',pc:1},
+  {id:'diag',n:'GS Diagnósticos',d:'Visitas de campo, UNC, CD, suspensiones, informe Word y NITS.',i:'🧭',c:'b',u:'https://gs-diagnosticos-app.vercel.app/',chk:1}]},
+ {t:'PDF y escaneo',apps:[
+  {id:'studio',n:'GS Studio',d:'Escanear documentos, firmar y editar PDF.',i:'📷',c:'b',u:'https://gs-studio.vercel.app/gs-studio/',chk:1}]},
+ {t:'Personal',apps:[
+  {id:'agenda',n:'GS Agenda',d:'Tus tareas, plan del día y calendario. Con clave y huella.',i:'🗓️',c:'g',u:'https://gs-agenda.vercel.app/',chk:1}]}
+];
+var KEY='gs_suite_urls_v1',$=function(s){return document.querySelector(s)};
+function load(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){return {}}}
+function save(o){try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){toast('No se pudo guardar en este dispositivo')}}
+function url(a){var o=load();return (o[a.id]||'').trim()||a.u}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function toast(m){var t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(function(){t.style.display='none'},2600)}
+function render(){
+  var q=$('#q').value.trim().toLowerCase(),h='',n=0;
+  GRUPOS.forEach(function(g){
+    var l=g.apps.filter(function(a){return !q||(a.n+' '+a.d).toLowerCase().indexOf(q)>-1});
+    if(!l.length)return; n+=l.length;
+    h+='<h2>'+esc(g.t)+'</h2><div class="grid">'+l.map(function(a){
+      var u=url(a),pending=a.chk&&!load()[a.id];
+      return '<a class="card" href="'+esc(u)+'" data-id="'+a.id+'"><span class="ic '+a.c+'" aria-hidden="true">'+a.i+'</span><span class="tx"><div class="nm">'+esc(a.n)+'</div><div class="ds">'+esc(a.d)+'</div>'+(a.pc?'<span class="tag">Mejor en computador</span>':'')+(pending?' <span class="tag w" title="Si no abre, pulsa ⚙ y pega la dirección real">Dirección por confirmar</span>':'')+'</span></a>'}).join('')+'</div>';
+  });
+  $('#main').innerHTML=n?h:'<p class="empty">No hay aplicaciones que coincidan.</p>';
+  $('#foot').textContent=navigator.onLine?'Con conexión · las apps se actualizan solas al abrirlas.':'Sin conexión · las apps ya abiertas antes siguen funcionando.';
+}
+$('#q').addEventListener('input',render);
+window.addEventListener('online',render);window.addEventListener('offline',render);
+function openEd(){var o=load();$('#rows').innerHTML=GRUPOS.reduce(function(a,g){return a.concat(g.apps)},[]).map(function(a){return '<div class="row"><label for="u_'+a.id+'">'+esc(a.n)+'</label><input id="u_'+a.id+'" data-id="'+a.id+'" inputmode="url" autocapitalize="off" spellcheck="false" placeholder="'+esc(a.u)+'" value="'+esc(o[a.id]||'')+'"></div>'}).join('');$('#ed').classList.add('on')}
+$('#cfg').onclick=openEd;$('#cls').onclick=function(){$('#ed').classList.remove('on')};
+$('#sav').onclick=function(){var o={},bad=0;document.querySelectorAll('#rows input').forEach(function(i){var v=i.value.trim();if(!v)return;if(v.indexOf('http')!==0&&v.charAt(0)!=='/'){if(/^[\w.-]+\.[a-z]{2,}/i.test(v))v='https://'+v;else{bad++;return}}o[i.dataset.id]=v});if(bad){toast('Hay una dirección que no parece válida');return}save(o);$('#ed').classList.remove('on');render();toast('Direcciones guardadas')};
+$('#rst').onclick=function(){save({});openEd();render();toast('Direcciones originales restablecidas')};
+var dp=null;window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();dp=e;$('#inst').hidden=false});
+$('#inst').onclick=function(){if(!dp)return;dp.prompt();dp.userChoice.finally(function(){dp=null;$('#inst').hidden=true})};
+if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js',{scope:'./'}).catch(function(){});
+render();
+</script></body></html>
