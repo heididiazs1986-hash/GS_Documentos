@@ -1,4 +1,4 @@
-const CACHE='gs-firmas-v4';
+const CACHE='gs-firmas-v5';
 const APP=['./','./index.html','./styles.css','./app.js','./firma-limpia.js','./manifest.json'];
 
 self.addEventListener('install',event=>{
