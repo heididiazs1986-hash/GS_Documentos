@@ -1,6 +1,6 @@
 {
-  "name": "GS UNC",
-  "short_name": "GS UNC",
+  "name": "GS Documentos",
+  "short_name": "GS Docs",
   "id": "/gs-documentos-applus",
   "start_url": "/index.html?v=gsdoc-v141-single-export-pwa",
   "scope": "/",

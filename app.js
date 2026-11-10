@@ -2593,7 +2593,7 @@
       if(oldH)oldH.style.display='none';if(oldP)oldP.style.display='none';
       shell=document.createElement('div');shell.className='gs78-start-shell';
       const hero=document.createElement('div');hero.className='gs78-hero';
-      hero.innerHTML='<img src="./gs-docs-field-hero.webp" alt=""><div class="gs78-brand"><b>GS UNC</b><span>Documentación técnica en campo</span></div>';
+      hero.innerHTML='<img src="./gs-docs-field-hero.webp" alt=""><div class="gs78-brand"><b>GS Documentos</b><span>Documentación técnica en campo</span></div>';
       const body=document.createElement('div');body.className='gs78-start-body';
       body.innerHTML='<h2>Bienvenido</h2>';
       if(regGrid)body.appendChild(regGrid);
