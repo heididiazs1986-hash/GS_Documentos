@@ -12,6 +12,7 @@ const localDate=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.
 const read=(key,fallback)=>{try{return JSON.parse(rawGet.call(localStorage,key)||'null')??fallback}catch(_){return fallback}};
 const state=()=>read(SKEY,{}),rows=()=>read(RKEY,[]),history=()=>read(HKEY,[]);
 const numeric=n=>n!==null&&n!==''&&Number.isFinite(Number(n));
+const IS_PC=!/Android|iPhone|iPad|iPod|Mobile|Silk|CriOS/i.test(navigator.userAgent||'')&&!!(window.matchMedia&&matchMedia('(pointer:fine)').matches);
 const colombia=(lat,lon)=>numeric(lat)&&numeric(lon)&&Number(lat)>=-5&&Number(lat)<=17&&Number(lon)>=-83&&Number(lon)<=-66;
 const coordMatch=(r,g)=>!!g&&colombia(r.latitud,r.longitud)&&Math.abs(Number(r.latitud)-Number(g.lat))<0.00000011&&Math.abs(Number(r.longitud)-Number(g.lon))<0.00000011;
 try{
@@ -125,6 +126,7 @@ Storage.prototype.removeItem=function(key){
 function validFieldRecord(){
   const s=state(),r=s.registration||{};
   if(s.role!=='tecnico')return true;
+  if(IS_PC)return colombia(r.latitud,r.longitud);   // en PC las coordenadas son editables: basta que sean válidas
   const previous=rows().find(x=>x.id_registro&&x.id_registro===(s.editingRecordId||s.currentRecord?.id_registro));
   if(recentGPS&&!recentGPS.used&&coordMatch(r,recentGPS)&&recentGPS.order===String(r.orden_ro||'').trim())return true;
   if(!previous&&colombia(r.latitud,r.longitud))return true;
@@ -152,7 +154,7 @@ function protectInputs(){
   }
 
   // Solo las coordenadas permanecen protegidas contra edición manual.
-  for(const id of ['reg_lat','reg_lon']){
+  if(!IS_PC)for(const id of ['reg_lat','reg_lon']){
     const el=document.getElementById(id);if(!el)continue;
     if(!el.readOnly)el.readOnly=true;
     if(!el.hasAttribute('readonly'))el.setAttribute('readonly','');
@@ -260,7 +262,7 @@ document.addEventListener('click',e=>{
 },true);
 for(const type of ['input','change']){
   document.addEventListener(type,e=>{
-    if(['reg_lat','reg_lon'].includes(e.target?.id)&&state().role==='tecnico'){
+    if(!IS_PC&&['reg_lat','reg_lon'].includes(e.target?.id)&&state().role==='tecnico'){
       e.preventDefault();e.stopImmediatePropagation();protectInputs();
     }
   },true);

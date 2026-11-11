@@ -98,9 +98,48 @@
     save();
   }
 
+  // Solo en computador (no celular/tablet): las coordenadas se pueden escribir o corregir.
+  const IS_PC=!/Android|iPhone|iPad|iPod|Mobile|Silk|CriOS/i.test(navigator.userAgent||'') && !!(window.matchMedia&&matchMedia('(pointer:fine)').matches);
+  function pcSyncCoords(lat,lon,persist){
+    state.registration=state.registration||{};state.form=state.form||{};
+    const clean=v=>String(v||'').trim().replace(',','.').replace(/[^\d.\-]/g,'');
+    const la=clean(lat),lo=clean(lon);
+    state.registration.latitud=la;state.registration.longitud=lo;
+    state.form.e1_coord_y=la;state.form.e1_coord_x=lo;
+    if(state.currentRecord){
+      state.currentRecord.latitud=la;state.currentRecord.longitud=lo;
+      if(persist&&state.currentRecord.id_registro&&typeof records==='function'&&typeof saveRecords==='function'){
+        try{const all=records(),ix=all.findIndex(x=>x.id_registro===state.currentRecord.id_registro);
+          if(ix>=0){all[ix]={...all[ix],latitud:la,longitud:lo,fecha_hora_actualizacion:new Date().toISOString()};saveRecords(all);state.currentRecord={...all[ix]}}}catch(e){console.warn('GS coord PC',e)}
+      }
+    }
+    try{save()}catch(_){}
+  }
+  function enablePcCoordinates(lat,lon){
+    for(const el of [lat,lon]){
+      el.readOnly=false;el.removeAttribute('readonly');el.disabled=false;
+      el.setAttribute('inputmode','decimal');
+      el.setAttribute('aria-label',el===lat?'Latitud (Y), editable':'Longitud (X), editable');
+      el.placeholder=el===lat?'Latitud (Y) · editable':'Longitud (X) · editable';
+      if(el.dataset.gsPcCoord!=='1'){
+        el.dataset.gsPcCoord='1';
+        el.addEventListener('input',()=>pcSyncCoords(lat.value,lon.value,false));
+        el.addEventListener('blur',()=>{
+          pcSyncCoords(lat.value,lon.value,true);
+          const v=Number(String(el.value).replace(',','.'));
+          if(el.value!==''&&(!Number.isFinite(v)||v<(el===lat?-90:-180)||v>(el===lat?90:180)))toast(el===lat?'Latitud inválida: debe estar entre -90 y 90':'Longitud inválida: debe estar entre -180 y 180');
+        });
+      }
+    }
+    let help=q('#gs122CoordHelp');
+    if(!help){help=document.createElement('div');help.id='gs122CoordHelp';help.className='coordinate-entry-help';lon.closest('.gps-row')?.insertAdjacentElement('afterend',help)}
+    help.textContent='En computador puedes escribir o corregir las coordenadas (también las que vienen del TXT). Se usan en el E1 y en el Excel. En Colombia la longitud es negativa.';
+  }
+
   function enhanceManualCoordinates(){
     const lat=q('#reg_lat'),lon=q('#reg_lon');
     if(!lat||!lon)return;
+    if(IS_PC){enablePcCoordinates(lat,lon);return}
     // Campo: coordenadas GPS de solo lectura. La captura se hace con el
     // botón GPS existente; no alterar sus listeners ni los valores precargados.
     for(const el of [lat,lon]){
@@ -170,7 +209,7 @@
     if(!Number.isFinite(n) || n>=0 || n< -180){
       event.preventDefault();
       event.stopImmediatePropagation();
-      toast('Longitud inválida para Colombia. Repite la captura GPS; no se permite corregir manualmente.');
+      toast(IS_PC?'Longitud inválida para Colombia: debe ser negativa (por ejemplo -74.0817).':'Longitud inválida para Colombia. Repite la captura GPS; no se permite corregir manualmente.');
     }
   },true);
 
