@@ -799,3 +799,11 @@ body.dark #txtUserSelect option{
   color:#f3f6f8!important;
   background:#24282c!important;
 }
+
+/* Opciones tipo radio: una cuadrícula ordenada, círculo a la izquierda y texto al lado */
+.field .options{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+.field .options.multi{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+@media(min-width:820px){.field .options.multi{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+.field .options .opt{display:flex!important;flex-direction:row!important;align-items:center!important;gap:10px!important;margin:0!important;padding:8px 12px!important;min-height:44px!important;border:1px solid var(--line,#dde3e9)!important;border-radius:12px!important;background:var(--soft,#f4f6f8)!important;line-height:1.2!important;cursor:pointer}
+.field .options .opt input{flex:0 0 20px!important;margin:0!important}
+.field .options .opt:has(input:checked){border-color:var(--orange,#ff6600)!important;background:rgba(255,102,0,.08)!important}
