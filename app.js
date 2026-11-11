@@ -357,7 +357,25 @@
       const clean=String(dataUrl||'').includes(',')?String(dataUrl).split(',').pop():String(dataUrl||'');
       return b64ToUint8(clean);
     }
-    function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},60000)}
+    function gsSaveBar(bl,name){
+      try{
+        let bar=document.getElementById('gsSaveBar');if(bar)bar.remove();
+        const f=new File([bl],name,{type:bl.type||'application/octet-stream'});
+        const canShare=!!(navigator.canShare&&navigator.canShare({files:[f]})),canPick=typeof window.showSaveFilePicker==='function';
+        bar=document.createElement('div');bar.id='gsSaveBar';
+        bar.style.cssText='position:fixed;left:8px;right:8px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:99999;background:#14181d;color:#fff;border-radius:14px;padding:10px 12px;box-shadow:0 6px 24px rgba(0,0,0,.35);display:flex;gap:8px;align-items:center;flex-wrap:wrap;font:14px system-ui,sans-serif;border:1px solid #ff6600';
+        const t=document.createElement('div');t.style.cssText='flex:1 1 160px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';t.textContent='⬇️ '+name;
+        const mk=(txt,fn,main)=>{const b=document.createElement('button');b.type='button';b.textContent=txt;b.style.cssText='border:0;border-radius:10px;padding:9px 12px;font:700 14px system-ui,sans-serif;cursor:pointer;'+(main?'background:#ff6600;color:#14181d':'background:#2b3641;color:#fff');b.onclick=fn;return b};
+        const save=async()=>{try{
+          if(canShare){await navigator.share({files:[f],title:name});return}
+          if(canPick){const ext=(name.match(/\.[A-Za-z0-9]+$/)||[''])[0];const h=await window.showSaveFilePicker({suggestedName:name,types:ext?[{description:'Archivo',accept:{[bl.type||'application/octet-stream']:[ext]}}]:undefined});const w=await h.createWritable();await w.write(bl);await w.close();return}
+          const u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},60000);
+        }catch(e){if(!(e&&e.name==='AbortError'))console.warn(e)}};
+        bar.append(t,mk(canShare?'📤 Compartir / guardar':canPick?'💾 Guardar como…':'⬇️ Descargar otra vez',save,true),mk('✕',()=>bar.remove()));
+        document.body.appendChild(bar);setTimeout(()=>{if(bar.isConnected)bar.remove()},90000);
+      }catch(e){console.warn('GS savebar',e)}
+    }
+    function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},60000);gsSaveBar(blob,name)}
     function cleanName(s){return (s||'GS_Documentos').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').replace(/^_+|_+$/g,'')||'GS_Documentos'}
     function pad2(n){return String(n).padStart(2,'0')}
     function dateParts(value){
