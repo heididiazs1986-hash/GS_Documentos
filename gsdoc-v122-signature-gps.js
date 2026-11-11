@@ -26,7 +26,8 @@
         toast('La imagen es demasiado pesada. Usa una menor de 15 MB');
         return;
       }
-      const src=await fileToDataURL(file);
+      let src=await fileToDataURL(file);
+      if(globalThis.GS_RECORTE){const rec=await GS_RECORTE.open(src);if(rec===null){toast('Carga cancelada');return}src=rec}
       const normalized=await normalizeSignatureDataURL(src);
       pendingSignatureData=normalized;
       const img=q('#sigPreviewImg');

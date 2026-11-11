@@ -294,7 +294,8 @@ async function normalizeSignatureImage(file){
     return;
   }
 
-  const src=await fileToDataURL(file);
+  let src=await fileToDataURL(file);
+  if(globalThis.GS_RECORTE){const rec=await GS_RECORTE.open(src);if(rec===null){toast('Carga cancelada');return}src=rec}
   const img=new Image();
 
   await new Promise((resolve,reject)=>{
