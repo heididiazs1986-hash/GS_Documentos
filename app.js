@@ -374,13 +374,14 @@
         const mk=(txt,fn,main)=>{const b=document.createElement('button');b.type='button';b.textContent=txt;b.style.cssText='border:0;border-radius:12px;padding:13px;font:700 15px system-ui,sans-serif;cursor:pointer;'+(main?'background:#ff6600;color:#14181d':'background:#e7ecf1;color:#14181d');b.onclick=fn;return b};
         const dl=()=>{const u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},60000);say('✅ Descarga enviada al navegador. Revisa la barra de descargas o la carpeta Descargas. Si no aparece, usa Compartir o abre la app en el navegador.');};
         const say=m=>{st.textContent=m;st.style.display='block'};
-        const share=async()=>{try{say('Abriendo…');await navigator.share({files:[f],title:name});bar.remove()}catch(e){if(e&&e.name==='AbortError'){st.style.display='none';return}console.warn(e);say('No se pudo abrir "Compartir" ('+((e&&e.name)||'error')+'). Probando descarga directa…');setTimeout(dl,300)}};
+        const share=async()=>{let slow=setTimeout(()=>say('Si no se abrió el menú de compartir en tu equipo, toca «⬇️ Descargar».'),3500);try{say('Abriendo…');await navigator.share({files:[f],title:name});clearTimeout(slow);bar.remove()}catch(e){clearTimeout(slow);if(e&&e.name==='AbortError'){st.style.display='none';return}console.warn(e);say('No se pudo abrir "Compartir" ('+((e&&e.name)||'error')+'). Probando descarga directa…');setTimeout(dl,300)}};
         const pick=async()=>{try{say('Abriendo…');const ext=(name.match(/\.[A-Za-z0-9]+$/)||[''])[0];const hd=await window.showSaveFilePicker({suggestedName:name,types:ext?[{description:'Archivo',accept:{[bl.type||'application/octet-stream']:[ext]}}]:undefined});const w=await hd.createWritable();await w.write(bl);await w.close();bar.remove()}catch(e){if(e&&e.name==='AbortError'){st.style.display='none';return}console.warn(e);say('No se pudo guardar ahí ('+((e&&e.name)||'error')+'). Probando descarga directa…');setTimeout(dl,300)}};
         if(canShare){col.append(mk('📤 Compartir / guardar en…',share,true),mk('⬇️ Descargar',dl))}
         else if(canPick){col.append(mk('💾 Guardar como… (elegir carpeta)',pick,true),mk('⬇️ Descargar',dl))}
         else col.append(mk('⬇️ Descargar',dl,true));
         col.append(mk('Cerrar',()=>bar.remove()));
-        card.append(h,t,st,col);bar.append(card);document.body.appendChild(bar);
+        const vv=document.createElement('div');vv.style.cssText='margin-top:10px;text-align:right;font-size:11px;color:#9aa5b1';vv.textContent='Ventana v181';
+        card.append(h,t,st,col,vv);bar.append(card);document.body.appendChild(bar);
       }catch(e){console.warn('GS savebar',e);try{const u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},60000)}catch(_){}}
     }
     function downloadBlob(blob,name){gsSaveBar(blob,name)}
