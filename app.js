@@ -754,12 +754,19 @@
       const box=$('#zipEvidence');
       if(box){box.classList.remove('hidden');box.innerHTML=`<b>✅ ZIP generado · descarga iniciada</b><div>${escapeText(name)}</div><small>${escapeText(stamp)} · Revisa la carpeta Descargas o la ubicación elegida por tu dispositivo.</small>`;
         try{
-          const f=lastGeneratedFile&&lastGeneratedFile.blob&&new File([lastGeneratedFile.blob],name,{type:lastGeneratedFile.blob.type||'application/octet-stream'});
-          if(f&&navigator.canShare&&navigator.canShare({files:[f]})){
-            const bt=document.createElement('button');bt.type='button';bt.className='btn';bt.style.marginTop='8px';bt.textContent='📤 Compartir / guardar en…';
-            bt.onclick=async()=>{try{await navigator.share({files:[f],title:name})}catch(e){if(e&&e.name!=='AbortError')toast('No se pudo abrir el menú de compartir')}};
-            box.appendChild(bt);
-          }
+          const bl=lastGeneratedFile&&lastGeneratedFile.blob; if(!bl)return;
+          const f=new File([bl],name,{type:bl.type||'application/octet-stream'});
+          const canShare=!!(navigator.canShare&&navigator.canShare({files:[f]})), canPick=typeof window.showSaveFilePicker==='function';
+          const bt=document.createElement('button');bt.type='button';bt.className='btn';bt.style.marginTop='8px';
+          bt.textContent=canShare?'📤 Compartir / guardar en…':canPick?'💾 Guardar como… (elegir carpeta)':'⬇️ Descargar de nuevo';
+          bt.onclick=async()=>{
+            try{
+              if(canShare){await navigator.share({files:[f],title:name});return}
+              if(canPick){const ext=(name.match(/\.[A-Za-z0-9]+$/)||[''])[0];const h=await window.showSaveFilePicker({suggestedName:name,types:ext?[{description:'Archivo',accept:{[bl.type||'application/octet-stream']:[ext]}}]:undefined});const w=await h.createWritable();await w.write(bl);await w.close();toast('✅ Guardado: '+name);return}
+              downloadBlob(bl,name);
+            }catch(e){if(e&&e.name==='AbortError')return;console.warn(e);try{downloadBlob(bl,name)}catch(_){toast('No se pudo guardar el archivo')}}
+          };
+          box.appendChild(bt);
         }catch(e){console.warn('GS compartir',e)}}
     }
     async function downloadGenerated(blob,name,scope='individual'){
