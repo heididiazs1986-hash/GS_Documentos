@@ -357,7 +357,7 @@
       const clean=String(dataUrl||'').includes(',')?String(dataUrl).split(',').pop():String(dataUrl||'');
       return b64ToUint8(clean);
     }
-    function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+    function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},60000)}
     function cleanName(s){return (s||'GS_Documentos').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').replace(/^_+|_+$/g,'')||'GS_Documentos'}
     function pad2(n){return String(n).padStart(2,'0')}
     function dateParts(value){
