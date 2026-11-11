@@ -16,6 +16,10 @@
   .gsr .sel i{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;display:block}
   .gsr .sel i::after{content:"";position:absolute;left:8px;top:8px;width:14px;height:14px;border-radius:50%;background:#ff6600;border:2px solid #fff;box-sizing:border-box}
   .gsr .sel i.e{cursor:ew-resize}.gsr .sel i.n{cursor:ns-resize}.gsr .sel i.c{cursor:nwse-resize}
+  .gsr .lvl{display:flex;align-items:center;gap:8px;padding:8px 14px 2px;background:#161d24}
+  .gsr .lvl b{min-width:58px;white-space:nowrap;text-align:center;font-size:14px}
+  .gsr .lvl input{flex:1;height:34px;margin:0;accent-color:#ff6600;background:repeating-linear-gradient(90deg,#46525e 0 2px,transparent 2px 5.55%) center/100% 10px no-repeat}
+  .gsr .lvl button{flex:0 0 46px;min-height:40px;font-size:18px;padding:0}
   .gsr .bar{display:flex;gap:8px;padding:10px 14px calc(12px + env(safe-area-inset-bottom));background:#161d24}
   .gsr button{flex:1;min-height:46px;border:0;border-radius:12px;font:700 15px system-ui,sans-serif;cursor:pointer;color:#fff;background:#2b3641}
   .gsr button.ok{background:#ff6600;color:#14181d;flex:1.6}
@@ -28,11 +32,28 @@
       const img=new Image();
       img.onerror=()=>resolve(src);               // si no se puede mostrar, se sigue con la imagen completa
       img.onload=()=>{
-        const iw=img.naturalWidth||img.width, ih=img.naturalHeight||img.height;
-        if(!iw||!ih){ resolve(src); return; }
+        img.onload=null;                             // al girar se cambia img.src: que no se abra otra ventana
+        const orig=img, ow=img.naturalWidth||img.width, oh=img.naturalHeight||img.height;
+        if(!ow||!oh){ resolve(src); return; }
+        let iw=ow, ih=oh, ang=0, q=0;                // ang: nivel fino (°), q: giros de 90°
+        const isPng=/^data:image\/png/i.test(src);
+        const rotCanvas=cap=>{
+          const deg=ang+q*90; if(!deg) return null;
+          const t=deg*Math.PI/180, c=Math.abs(Math.cos(t)), s=Math.abs(Math.sin(t));
+          let w=ow*c+oh*s, h=ow*s+oh*c, k=Math.min(1,cap/Math.max(w,h));
+          const cv=document.createElement('canvas'); cv.width=Math.max(8,Math.round(w*k)); cv.height=Math.max(8,Math.round(h*k));
+          const x=cv.getContext('2d'); if(!isPng){ x.fillStyle='#fff'; x.fillRect(0,0,cv.width,cv.height); }
+          x.translate(cv.width/2,cv.height/2); x.rotate(t); x.scale(k,k); x.drawImage(orig,-ow/2,-oh/2);
+          return cv;
+        };
         const ov=document.createElement('div'); ov.className='gsr'; ov.setAttribute('role','dialog'); ov.setAttribute('aria-modal','true');
-        ov.innerHTML='<h2>Recorta la firma</h2><p>Mueve el recuadro naranja y ajusta las esquinas para dejar solo la firma, sin textos impresos ni bordes de la hoja.</p><div class="st"><div class="wrap"></div></div><div class="bar"><button type="button" data-a="cancel">Cancelar</button><button type="button" data-a="full">Sin recortar</button><button type="button" class="ok" data-a="ok">Usar recorte</button></div>';
+        ov.innerHTML='<h2>Recorta la firma</h2><p>Nivela la foto con la barra (o gira 90°) y ajusta el recuadro naranja para dejar solo la firma, sin textos impresos ni bordes.</p><div class="st"><div class="wrap"></div></div><div class="lvl"><button type="button" data-a="l90" aria-label="Girar 90 a la izquierda">↺</button><input type="range" min="-45" max="45" step="0.5" value="0" aria-label="Nivelar"><b>0°</b><button type="button" data-a="r90" aria-label="Girar 90 a la derecha">↻</button></div><div class="bar"><button type="button" data-a="cancel">Cancelar</button><button type="button" data-a="full">Sin recortar</button><button type="button" class="ok" data-a="ok">Usar recorte</button></div>';
         const wrap=ov.querySelector('.wrap'); wrap.appendChild(img);
+        const rng=ov.querySelector('input[type=range]'), lbl=ov.querySelector('.lvl b');
+        let tick=0;
+        const apply=()=>{ const cv=rotCanvas(1400); const v=cv?cv.toDataURL('image/jpeg',.8):src; const my=++tick; const p=new Image(); p.onload=()=>{ if(my===tick){ img.src=v; iw=cv?cv.width:ow; ih=cv?cv.height:oh; } }; p.src=v; lbl.textContent=(ang+q*90).toFixed(ang%1?1:0).replace(/^-0$/,'0')+'°'; };
+        rng.addEventListener('input',()=>{ ang=+rng.value; apply(); });
+        rng.addEventListener('dblclick',()=>{ rng.value=0; ang=0; apply(); });
         const sel=document.createElement('div'); sel.className='sel';
         const hs=[['nw','c',0,0],['n','n',.5,0],['ne','c',1,0],['e','e',1,.5],['se','c',1,1],['s','n',.5,1],['sw','c',0,1],['w','e',0,.5]];
         hs.forEach(([k,cls,px,py])=>{const i=document.createElement('i'); i.dataset.h=k; i.className=cls; i.style.left=(px*100)+'%'; i.style.top=(py*100)+'%'; sel.appendChild(i);});
@@ -70,22 +91,24 @@
 
         const close=v=>{ document.documentElement.style.overflow=prevOverflow; ov.remove(); resolve(v); };
         const crop=()=>{
+          const big=rotCanvas(4000); const srcEl=big||img; if(big){ iw=big.width; ih=big.height; } else { iw=ow; ih=oh; }
           const sx=Math.round(f.x*iw), sy=Math.round(f.y*ih), sw=Math.max(8,Math.round(f.w*iw)), sh=Math.max(8,Math.round(f.h*ih));
           const k=Math.min(1,MAXSIDE/Math.max(sw,sh)), w=Math.max(8,Math.round(sw*k)), h=Math.max(8,Math.round(sh*k));
           const c=document.createElement('canvas'); c.width=w; c.height=h; const x=c.getContext('2d');
-          const png=/^data:image\/png/i.test(src);
+          const png=isPng;
           if(!png){ x.fillStyle='#fff'; x.fillRect(0,0,w,h); }
-          x.drawImage(img,sx,sy,sw,sh,0,0,w,h);
+          x.drawImage(srcEl,sx,sy,sw,sh,0,0,w,h);
           return png?c.toDataURL('image/png'):c.toDataURL('image/jpeg',.93);
         };
-        ov.querySelector('.bar').addEventListener('click',e=>{
+        ov.addEventListener('click',e=>{
           const a=e.target.dataset&&e.target.dataset.a; if(!a) return;
-          if(a==='cancel') close(null); else if(a==='full') close(src); else { try{ close(crop()); }catch(err){ console.warn('GS recorte:',err); close(src); } }
+          if(a==='l90'||a==='r90'){ q+=a==='l90'?-1:1; apply(); return; }
+          if(a==='cancel') close(null); else if(a==='full'){ if(ang||q){ f={x:0,y:0,w:1,h:1}; try{ close(crop()); }catch(_){ close(src); } } else close(src); } else { try{ close(crop()); }catch(err){ console.warn('GS recorte:',err); close(src); } }
         });
         ov.addEventListener('keydown',e=>{ if(e.key==='Escape') close(null); });
       };
       img.src=src;
     });
   }
-  globalThis.GS_RECORTE={open,version:'v172'};
+  globalThis.GS_RECORTE={open,version:'v174'};
 })();
