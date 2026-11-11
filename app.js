@@ -357,34 +357,17 @@
       const clean=String(dataUrl||'').includes(',')?String(dataUrl).split(',').pop():String(dataUrl||'');
       return b64ToUint8(clean);
     }
-    function gsSaveBar(bl,name){
-      try{
-        let bar=document.getElementById('gsSaveBar');if(bar)bar.remove();
-        const f=new File([bl],name,{type:bl.type||'application/octet-stream'});
-        const canShare=!!(navigator.canShare&&navigator.canShare({files:[f]})),canPick=typeof window.showSaveFilePicker==='function';
-        const size=bl.size>1048576?(bl.size/1048576).toFixed(1)+' MB':Math.max(1,Math.round(bl.size/1024))+' KB';
-        bar=document.createElement('div');bar.id='gsSaveBar';bar.setAttribute('role','dialog');bar.setAttribute('aria-modal','true');
-        bar.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(10,14,18,.6);display:flex;align-items:center;justify-content:center;padding:16px;font:15px system-ui,sans-serif';
-        const card=document.createElement('div');
-        card.style.cssText='background:#fff;color:#14181d;border-radius:18px;padding:18px;max-width:380px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.4);border-top:5px solid #ff6600';
-        const h=document.createElement('div');h.style.cssText='font-weight:800;font-size:17px';h.textContent='📁 Tu archivo está listo';
-        const t=document.createElement('div');t.style.cssText='margin:6px 0 14px;color:#5b6773;word-break:break-all;font-size:13px';t.textContent=name+' · '+size;
-        let shareBtn=null;const st=document.createElement('div');st.style.cssText='display:none;margin:0 0 10px;padding:8px 10px;border-radius:10px;background:#fff5ee;color:#7a3300;font-size:13px';
-        const col=document.createElement('div');col.style.cssText='display:flex;flex-direction:column;gap:8px';
-        const mk=(txt,fn,main)=>{const b=document.createElement('button');b.type='button';b.textContent=txt;b.style.cssText='border:0;border-radius:12px;padding:13px;font:700 15px system-ui,sans-serif;cursor:pointer;'+(main?'background:#ff6600;color:#14181d':'background:#e7ecf1;color:#14181d');b.onclick=fn;return b};
-        const dl=quiet=>{const u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},60000);if(quiet!==true)say('✅ Descarga enviada. Revisa la notificación o la carpeta Descargas.');};
-        const say=m=>{st.textContent=m;st.style.display='block'};
-        const share=async()=>{let slow=setTimeout(()=>say('Si no se abrió el menú de compartir, toca «⬇️ Descargar».'),3500);try{say('Abriendo…');await navigator.share({files:[f],title:name});clearTimeout(slow);bar.remove()}catch(e){clearTimeout(slow);if(e&&e.name==='AbortError'){st.style.display='none';return}console.warn(e);if(shareBtn){shareBtn.remove();shareBtn=null}say('Este equipo no deja compartir archivos desde aquí; el archivo se descargó. Para enviarlo por WhatsApp: abre la notificación «Archivo descargado» o la carpeta Descargas, mantén pulsado el archivo y elige Compartir.');dl(true)}};
-        const pick=async()=>{try{say('Abriendo…');const ext=(name.match(/\.[A-Za-z0-9]+$/)||[''])[0];const hd=await window.showSaveFilePicker({suggestedName:name,types:ext?[{description:'Archivo',accept:{[bl.type||'application/octet-stream']:[ext]}}]:undefined});const w=await hd.createWritable();await w.write(bl);await w.close();bar.remove()}catch(e){if(e&&e.name==='AbortError'){st.style.display='none';return}console.warn(e);say('No se pudo guardar ahí ('+((e&&e.name)||'error')+'). Probando descarga directa…');setTimeout(dl,300)}};
-        if(canShare){shareBtn=mk('📤 Compartir (WhatsApp, correo…)',share,true);col.append(shareBtn,mk('⬇️ Descargar',dl))}
-        else if(canPick){col.append(mk('💾 Guardar como… (elegir carpeta)',pick,true),mk('⬇️ Descargar',dl))}
-        else col.append(mk('⬇️ Descargar',dl,true));
-        col.append(mk('Cerrar',()=>bar.remove()));
-        const vv=document.createElement('div');vv.style.cssText='margin-top:10px;text-align:right;font-size:11px;color:#9aa5b1';vv.textContent='Ventana v182';
-        card.append(h,t,st,col,vv);bar.append(card);document.body.appendChild(bar);
-      }catch(e){console.warn('GS savebar',e);try{const u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},60000)}catch(_){}}
-    }
-    function downloadBlob(blob,name){gsSaveBar(blob,name)}
+    const GSPROG=(()=>{let ov,bar,pct,msg,t0=0;
+      const mk=()=>{ov=document.createElement('div');ov.id='gsProg';ov.setAttribute('role','dialog');ov.setAttribute('aria-live','polite');
+        ov.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(10,14,18,.62);display:flex;align-items:center;justify-content:center;padding:16px;font-family:system-ui,sans-serif';
+        ov.innerHTML='<div style="background:#fff;color:#14181d;border-radius:18px;padding:20px;max-width:360px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.4);border-top:5px solid #ff6600;text-align:center"><div style="font-weight:800;font-size:16px">Generando documentos…</div><div id="gsProgPct" style="font-size:44px;font-weight:800;color:#ff6600;margin:6px 0">0%</div><div style="height:12px;border-radius:99px;background:#e7ecf1;overflow:hidden"><div id="gsProgBar" style="height:100%;width:0;background:#ff6600;transition:width .25s"></div></div><div id="gsProgMsg" style="margin-top:10px;font-size:13px;color:#5b6773;min-height:18px"></div><div style="margin-top:8px;font-size:12px;color:#9aa5b1">No cierres ni cambies de pantalla. Al llegar al 100% se descarga solo.</div></div>';
+        document.body.appendChild(ov);bar=ov.querySelector('#gsProgBar');pct=ov.querySelector('#gsProgPct');msg=ov.querySelector('#gsProgMsg')};
+      return{
+        start(m){this.end();mk();this.set(0,m||'Preparando…')},
+        set(p,m){if(!ov)return;p=Math.max(0,Math.min(100,Math.round(p)));bar.style.width=p+'%';pct.textContent=p+'%';if(m)msg.textContent=m},
+        end(){if(ov){ov.remove();ov=null}}
+      }})();
+    function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},60000)}
     function cleanName(s){return (s||'GS_Documentos').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').replace(/^_+|_+$/g,'')||'GS_Documentos'}
     function pad2(n){return String(n).padStart(2,'0')}
     function dateParts(value){
@@ -800,7 +783,7 @@
       lastGeneratedFile={blob,name,scope};
       downloadBlob(blob,name);
       showDownloadEvidence(name,scope);
-      toast('📁 Archivo listo: elige cómo guardarlo',4000);
+      toast('⬇️ Descarga iniciada: '+name,6000);
       return true;
     }
     function tdFileName(rec){return `TD_${safeFilePart(rec?.identificacion||'Sin_identificacion')}_${rec?.fecha_registro||todayISO()}.pdf`}
@@ -2226,16 +2209,21 @@
 
       updateKpis();
       const zip=new JSZip(),generated=[],errors=[];
+      const stepsN=1+sel.length;let stepI=0;const adv=m=>{stepI++;GSPROG.set(5+stepI/stepsN*65,m)};
+      GSPROG.start('Preparando…');
 
       // TD is part of every documentary package.
       try{
+        GSPROG.set(5,'Generando constancia TD…');
         const tdName=typeof tdFileName==='function'?tdFileName(rec):'TD_Constancia_Inspeccion.pdf';
         const tdBytes=await makeTD(rec);
         if(!tdBytes||tdBytes.length<1000)throw new Error('archivo vacío');
         zip.file(tdName,tdBytes);generated.push('TD');
       }catch(e){errors.push('TD: '+(e?.message||e));warn('TD',e)}
+      adv('Constancia TD lista');
 
       for(const d of sel){
+        GSPROG.set(5+stepI/stepsN*65,'Generando '+d+'…');
         try{
           if(['E1','E6','AR','DJ','RETIE'].includes(d)){
             const bytes=await makePDF(d);
@@ -2250,6 +2238,7 @@
           errors.push(d+': '+(e?.message||e));
           warn(d,e);
         }
+        adv(d+' listo');
       }
 
       // Do NOT give the technician a misleading partial package.
@@ -2259,6 +2248,7 @@
         const msg='No se descargó el paquete porque falló la generación de: '+missing.join(', ')+
           (errors.length?'\n\nDetalle:\n'+errors.join('\n'):'');
         console.error(msg);
+        GSPROG.end();
         alert(msg);
         toast('No se descargó un ZIP incompleto. Revisa los errores indicados');
         return false;
@@ -2267,6 +2257,7 @@
       if(Object.values(state.materials?.qty||{}).some(q=>Number(q)>0)){
         try{zip.file('Materiales.xlsx',makeMaterials());generated.push('MATERIALES')}catch(e){errors.push('Materiales: '+(e?.message||e))}
       }
+      GSPROG.set(72,'Agregando materiales y soportes…');
       if(state.supports?.length){
         const folder=zip.folder('SOPORTES');
         for(const f of state.supports){
@@ -2284,12 +2275,14 @@
       );
       if(errors.length)zip.file('ADVERTENCIAS_GENERACION.txt',errors.join('\n'));
 
-      const blob=await zip.generateAsync({type:'blob'});
+      const blob=await zip.generateAsync({type:'blob'},m=>GSPROG.set(75+m.percent*.23,'Comprimiendo el paquete…'));
       const name=cleanName(appData().cm_nombre||rec.nombres||'GS_Documentos')+'.zip';
+      GSPROG.set(100,'Listo · descargando');await new Promise(r=>setTimeout(r,400));GSPROG.end();
       await downloadBlob(blob,name);
       toast('✅ Paquete completo generado: '+generated.join(', '),7000);
       return true;
     }catch(e){
+      GSPROG.end();
       console.error(e);
       alert('Error generando documentos: '+(e?.message||e));
       toast('Error generando: '+(e?.message||e));
