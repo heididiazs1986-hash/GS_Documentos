@@ -1,5 +1,5 @@
-const CACHE='gs-firmas-v5';
-const APP=['./','./index.html','./styles.css','./app.js','./firma-limpia.js','./manifest.json'];
+const CACHE='gs-firmas-v6';
+const APP=['./','./index.html','./styles.css','./app.js','./firma-limpia.js','./pdf-lib.min.js','./app-icon.svg','./gs-mark.svg','./gsb-Firmas.webp','./manifest.json'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(c=>c.addAll(APP)));
@@ -19,8 +19,7 @@ self.addEventListener('fetch',event=>{
   if(url.origin!==self.location.origin)return;
   event.respondWith(
     fetch(event.request).then(res=>{
-      const copy=res.clone();
-      caches.open(CACHE).then(c=>c.put(event.request,copy)).catch(()=>{});
+      if(res&&res.ok){const copy=res.clone();caches.open(CACHE).then(c=>c.put(event.request,copy)).catch(()=>{});}
       return res;
     }).catch(()=>caches.match(event.request).then(hit=>hit||caches.match('./index.html')))
   );
