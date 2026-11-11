@@ -369,18 +369,18 @@
         card.style.cssText='background:#fff;color:#14181d;border-radius:18px;padding:18px;max-width:380px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.4);border-top:5px solid #ff6600';
         const h=document.createElement('div');h.style.cssText='font-weight:800;font-size:17px';h.textContent='📁 Tu archivo está listo';
         const t=document.createElement('div');t.style.cssText='margin:6px 0 14px;color:#5b6773;word-break:break-all;font-size:13px';t.textContent=name+' · '+size;
-        const st=document.createElement('div');st.style.cssText='display:none;margin:0 0 10px;padding:8px 10px;border-radius:10px;background:#fff5ee;color:#7a3300;font-size:13px';
+        let shareBtn=null;const st=document.createElement('div');st.style.cssText='display:none;margin:0 0 10px;padding:8px 10px;border-radius:10px;background:#fff5ee;color:#7a3300;font-size:13px';
         const col=document.createElement('div');col.style.cssText='display:flex;flex-direction:column;gap:8px';
         const mk=(txt,fn,main)=>{const b=document.createElement('button');b.type='button';b.textContent=txt;b.style.cssText='border:0;border-radius:12px;padding:13px;font:700 15px system-ui,sans-serif;cursor:pointer;'+(main?'background:#ff6600;color:#14181d':'background:#e7ecf1;color:#14181d');b.onclick=fn;return b};
-        const dl=()=>{const u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},60000);say('✅ Descarga enviada al navegador. Revisa la barra de descargas o la carpeta Descargas. Si no aparece, usa Compartir o abre la app en el navegador.');};
+        const dl=quiet=>{const u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},60000);if(quiet!==true)say('✅ Descarga enviada. Revisa la notificación o la carpeta Descargas.');};
         const say=m=>{st.textContent=m;st.style.display='block'};
-        const share=async()=>{let slow=setTimeout(()=>say('Si no se abrió el menú de compartir en tu equipo, toca «⬇️ Descargar».'),3500);try{say('Abriendo…');await navigator.share({files:[f],title:name});clearTimeout(slow);bar.remove()}catch(e){clearTimeout(slow);if(e&&e.name==='AbortError'){st.style.display='none';return}console.warn(e);say('No se pudo abrir "Compartir" ('+((e&&e.name)||'error')+'). Probando descarga directa…');setTimeout(dl,300)}};
+        const share=async()=>{let slow=setTimeout(()=>say('Si no se abrió el menú de compartir, toca «⬇️ Descargar».'),3500);try{say('Abriendo…');await navigator.share({files:[f],title:name});clearTimeout(slow);bar.remove()}catch(e){clearTimeout(slow);if(e&&e.name==='AbortError'){st.style.display='none';return}console.warn(e);if(shareBtn){shareBtn.remove();shareBtn=null}say('Este equipo no deja compartir archivos desde aquí; el archivo se descargó. Para enviarlo por WhatsApp: abre la notificación «Archivo descargado» o la carpeta Descargas, mantén pulsado el archivo y elige Compartir.');dl(true)}};
         const pick=async()=>{try{say('Abriendo…');const ext=(name.match(/\.[A-Za-z0-9]+$/)||[''])[0];const hd=await window.showSaveFilePicker({suggestedName:name,types:ext?[{description:'Archivo',accept:{[bl.type||'application/octet-stream']:[ext]}}]:undefined});const w=await hd.createWritable();await w.write(bl);await w.close();bar.remove()}catch(e){if(e&&e.name==='AbortError'){st.style.display='none';return}console.warn(e);say('No se pudo guardar ahí ('+((e&&e.name)||'error')+'). Probando descarga directa…');setTimeout(dl,300)}};
-        if(canShare){col.append(mk('📤 Compartir / guardar en…',share,true),mk('⬇️ Descargar',dl))}
+        if(canShare){shareBtn=mk('📤 Compartir (WhatsApp, correo…)',share,true);col.append(shareBtn,mk('⬇️ Descargar',dl))}
         else if(canPick){col.append(mk('💾 Guardar como… (elegir carpeta)',pick,true),mk('⬇️ Descargar',dl))}
         else col.append(mk('⬇️ Descargar',dl,true));
         col.append(mk('Cerrar',()=>bar.remove()));
-        const vv=document.createElement('div');vv.style.cssText='margin-top:10px;text-align:right;font-size:11px;color:#9aa5b1';vv.textContent='Ventana v181';
+        const vv=document.createElement('div');vv.style.cssText='margin-top:10px;text-align:right;font-size:11px;color:#9aa5b1';vv.textContent='Ventana v182';
         card.append(h,t,st,col,vv);bar.append(card);document.body.appendChild(bar);
       }catch(e){console.warn('GS savebar',e);try{const u=URL.createObjectURL(bl),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(u);a.remove()},60000)}catch(_){}}
     }
