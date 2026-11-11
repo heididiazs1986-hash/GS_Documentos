@@ -1,4 +1,4 @@
-const CACHE='gs-firmas-v7';
+const CACHE='gs-firmas-v8';
 const APP=['./','./index.html','./styles.css','./app.js','./firma-limpia.js','./pdf-lib.min.js','./app-icon.svg','./gs-mark.svg','./gsb-Firmas.webp','./manifest.json'];
 
 self.addEventListener('install',event=>{
