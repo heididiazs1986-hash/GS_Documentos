@@ -3,7 +3,7 @@
   'use strict';
   if(globalThis.__GS_SITIOS__)return; globalThis.__GS_SITIOS__=true;
   if(window.top!==window.self)return;
-  const KEY='GS_DOCS_SITIOS_V1',POS='GS_DOCS_PIN_POS',q=s=>document.querySelector(s);
+  const KEY='GS_DOCS_SITIOS_V1',POS='GS_DOCS_PIN_POS2',q=s=>document.querySelector(s);
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}};
   const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}};
@@ -21,8 +21,9 @@
   #gsPin:before,#gsPin:after{content:"";position:absolute;inset:0;border-radius:50%;background:rgba(121,209,255,.55);animation:gsPinWave 2.8s ease-out infinite;pointer-events:none}
   #gsPin:after{animation-delay:1.4s}
   @keyframes gsPinWave{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.1);opacity:0}}
-  #gsPin .p{position:absolute;inset:0;border:0;border-radius:50%;background:rgba(255,255,255,.96);box-shadow:0 2px 8px rgba(11,60,112,.28);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+  #gsPin .p{position:absolute;inset:0;border:0;border-radius:50%;background:#DDF2FF;border:2px solid rgba(121,209,255,.95);box-shadow:0 2px 8px rgba(11,60,112,.25);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
   #gsPin .p svg{width:26px;height:26px}
+  #gsPin .n[hidden]{display:none}
   #gsPin .n{position:absolute;right:-4px;top:-4px;min-width:18px;height:18px;border-radius:9px;background:#FF6B16;color:#fff;font:700 11px system-ui,sans-serif;display:flex;align-items:center;justify-content:center;padding:0 4px}
   .gsM{position:fixed;inset:0;z-index:2147482500;background:rgba(11,60,112,.35);display:flex;align-items:flex-end;justify-content:center}
   .gsM .box{background:#fff;width:min(460px,100%);max-height:86vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#17324F;box-shadow:0 -6px 24px rgba(0,0,0,.2)}
@@ -41,10 +42,10 @@
 
   /* ---------- pin flotante ---------- */
   const pin=document.createElement('div');pin.id='gsPin';pin.setAttribute('aria-label','Capturar ubicación');
-  pin.innerHTML=`<button class="p" type="button" title="Capturar ubicación"><svg viewBox="0 0 24 24"><path d="M12 2C7.6 2 4 5.5 4 9.8c0 5.6 8 12.2 8 12.2s8-6.6 8-12.2C20 5.5 16.4 2 12 2z" fill="#0B3C70"/><circle cx="12" cy="9.8" r="3.2" fill="#FF6B16"/></svg></button><span class="n" hidden></span>`;
+  pin.innerHTML=`<button class="p" type="button" title="Capturar ubicación"><svg viewBox="0 0 24 24"><path d="M12 2C7.6 2 4 5.5 4 9.8c0 5.6 8 12.2 8 12.2s8-6.6 8-12.2C20 5.5 16.4 2 12 2z" fill="#FF6B16"/><circle cx="12" cy="9.8" r="3.2" fill="#fff"/></svg></button><span class="n" hidden></span>`;
   let pos;try{pos=JSON.parse(localStorage.getItem(POS)||'null')}catch(e){}
   const clamp=()=>{pos.x=Math.max(4,Math.min(innerWidth-48,pos.x));pos.y=Math.max(4,Math.min(innerHeight-48,pos.y))};
-  const place=()=>{if(!pos||typeof pos.x!=='number')pos={x:14,y:innerHeight-150};clamp();pin.style.left=pos.x+'px';pin.style.top=pos.y+'px'};
+  const place=()=>{if(!pos||typeof pos.x!=='number')pos={x:Math.round(innerWidth*0.72)-22,y:Math.round(innerHeight*0.43)-22};clamp();pin.style.left=pos.x+'px';pin.style.top=pos.y+'px'};
   const badge=()=>{const n=load().length,b=pin.querySelector('.n');b.hidden=!n;b.textContent=n};
   let drag=null,moved=false;
   pin.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,px:pos.x,py:pos.y};moved=false;try{pin.setPointerCapture(e.pointerId)}catch(_){}});
