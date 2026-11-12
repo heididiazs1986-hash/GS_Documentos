@@ -10,6 +10,7 @@
   const hm=ts=>{try{const d=new Date(ts);return d.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'})}catch(e){return''}};
   function dist(a,b){const R=6371000,t=x=>x*Math.PI/180,dl=t(b.lat-a.lat),dn=t(b.lon-a.lon),h=Math.sin(dl/2)**2+Math.cos(t(a.lat))*Math.cos(t(b.lat))*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))}
   const usedIds=()=>{try{return new Set(JSON.parse(localStorage.getItem('GS_DOCS_REGISTROS_V1')||'[]').map(x=>x.sitio_id).filter(Boolean))}catch(e){return new Set()}};
+  const IS_PC=!/Android|iPhone|iPad|iPod|Mobile|Silk|CriOS/i.test(navigator.userAgent||'') && !!(window.matchMedia&&matchMedia('(pointer:fine)').matches);
   let busy=false;
 
   function listHTML(){
@@ -83,7 +84,7 @@
   // El técnico no avanza sin coordenada de un sitio capturado.
   document.addEventListener('click',e=>{
     const b=e.target?.closest?.('button');
-    if(!b||b.id!=='regNext'||state.regStep!==0||state.role!=='tecnico'||state.editingRecordId)return;
+    if(!b||b.id!=='regNext'||state.regStep!==0||state.role!=='tecnico'||state.editingRecordId||IS_PC)return;
     const r=state.registration||{};
     if(!r.latitud||!r.longitud){e.preventDefault();e.stopImmediatePropagation();toast('Primero captura el sitio y pulsa «Usar»');q('#gsSitios')?.scrollIntoView({behavior:'smooth',block:'center'})}
   },true);
@@ -92,7 +93,7 @@
     const host=q('#regHost');if(!host)return;
     const r=state.registration||{};
     if(state.regStep===0&&!state.editingRecordId&&!q('#gsSitios'))host.insertAdjacentHTML('afterbegin',cardHTML());
-    if(state.regStep===5&&r.sitio_id&&state.role==='tecnico'){
+    if(state.regStep===5&&r.sitio_id&&state.role==='tecnico'&&!IS_PC){
       const g=q('#gpsBtn');if(g)g.style.display='none';
       const h=q('#gs122CoordHelp');if(h)h.textContent='Coordenadas tomadas en el sitio ('+hm(r.coord_ts)+(r.coord_alerta?' · ⚠ '+r.coord_alerta:'')+'). Para cambiarlas, vuelve al paso 1 y elige otro sitio.';
     }
@@ -105,7 +106,7 @@
   try{
     const oldTxt=applyTxtRecord;
     applyTxtRecord=function(rec){
-      const r=state.registration||{},keep=r.sitio_id?{latitud:r.latitud,longitud:r.longitud,precision:r.precision}:null;
+      const r=state.registration||{},keep=(r.sitio_id&&!IS_PC)?{latitud:r.latitud,longitud:r.longitud,precision:r.precision}:null;
       const out=oldTxt.apply(this,arguments);
       if(keep&&state.registration){Object.assign(state.registration,keep);try{save()}catch(e){}}
       return out;
