@@ -452,7 +452,7 @@
         'text_2tgsw':'cm_mpio',
         'text_3kjbx':'cm_mpio',
         'text_4mqvb':'cm_dir_radica',
-        'text_5yied':'cm_localidad',
+        'text_5yied':'cm_sector',
         'text_6prgm':'cm_nombre',
         'text_7jdiv':'cm_num_doc',
         'text_8ptdj':'_today_day',

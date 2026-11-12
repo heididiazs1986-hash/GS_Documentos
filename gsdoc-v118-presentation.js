@@ -149,7 +149,7 @@
       put('textarea_23tsxt','');
     }else if(kind==='AR'){
       put('text_1lojj',v.sector);put('text_2tgsw',v.localidad);put('text_3kjbx',v.mpio||v.localidad);
-      put('text_4mqvb',v.direccion);put('text_5yied',v.localidad);put('text_6prgm',v.nombre);put('text_7jdiv',v.doc);
+      put('text_4mqvb',v.direccion);put('text_5yied',v.sector);put('text_6prgm',v.nombre);put('text_7jdiv',v.doc);
       put('text_8ptdj',v.fecha.dia);put('text_9ujpp',v.fecha.mes);put('text_10ipyf',v.fecha.anio);
     }else if(kind==='DJ'){
       put('Nombre solicitante',v.nombre);put('NumIdentificacion',v.doc);put('Domicilio',titleCase(v.f.dj_ciudad_dom||v.mpio));
