@@ -3,7 +3,7 @@
   'use strict';
   if(globalThis.__GS_SITIOS__)return; globalThis.__GS_SITIOS__=true;
   if(window.top!==window.self)return;
-  const KEY='GS_DOCS_SITIOS_V1',POS='GS_DOCS_PIN_POS2',q=s=>document.querySelector(s);
+  const KEY='GS_DOCS_SITIOS_V1',q=s=>document.querySelector(s);
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}};
   const store=a=>{try{localStorage.setItem(KEY,JSON.stringify(a))}catch(e){}};
@@ -17,7 +17,8 @@
   /* ---------- estilos ---------- */
   const st=document.createElement('style');
   st.textContent=`
-  #gsPin{position:fixed;z-index:2147481000;width:44px;height:44px;-webkit-tap-highlight-color:transparent;touch-action:none}
+  #gsPin{position:relative;flex:none;margin:0 10px 0 auto;width:40px;height:40px;-webkit-tap-highlight-color:transparent}
+  .reg-head{align-items:center}
   #gsPin:before,#gsPin:after{content:"";position:absolute;inset:0;border-radius:50%;background:rgba(121,209,255,.55);animation:gsPinWave 2.8s ease-out infinite;pointer-events:none}
   #gsPin:after{animation-delay:1.4s}
   @keyframes gsPinWave{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.1);opacity:0}}
@@ -43,16 +44,10 @@
   /* ---------- pin flotante ---------- */
   const pin=document.createElement('div');pin.id='gsPin';pin.setAttribute('aria-label','Capturar ubicación');
   pin.innerHTML=`<button class="p" type="button" title="Capturar ubicación"><svg viewBox="0 0 24 24"><path d="M12 2C7.6 2 4 5.5 4 9.8c0 5.6 8 12.2 8 12.2s8-6.6 8-12.2C20 5.5 16.4 2 12 2z" fill="#FF6B16"/><circle cx="12" cy="9.8" r="3.2" fill="#fff"/></svg></button><span class="n" hidden></span>`;
-  let pos;try{pos=JSON.parse(localStorage.getItem(POS)||'null')}catch(e){}
-  const clamp=()=>{pos.x=Math.max(4,Math.min(innerWidth-48,pos.x));pos.y=Math.max(4,Math.min(innerHeight-48,pos.y))};
-  const place=()=>{if(!pos||typeof pos.x!=='number')pos={x:Math.round(innerWidth*0.72)-22,y:Math.round(innerHeight*0.43)-22};clamp();pin.style.left=pos.x+'px';pin.style.top=pos.y+'px'};
   const badge=()=>{const n=load().length,b=pin.querySelector('.n');b.hidden=!n;b.textContent=n};
-  let drag=null,moved=false;
-  pin.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,px:pos.x,py:pos.y};moved=false;try{pin.setPointerCapture(e.pointerId)}catch(_){}});
-  pin.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>6)moved=true;if(moved){pos={x:drag.px+dx,y:drag.py+dy};place()}});
-  pin.addEventListener('pointerup',()=>{if(drag&&moved){try{localStorage.setItem(POS,JSON.stringify(pos))}catch(e){}}const was=moved;drag=null;if(!was)openPanel()});
-  const mount=()=>{if(!document.body)return setTimeout(mount,100);document.body.appendChild(pin);place();badge()};
-  addEventListener('resize',place);mount();
+  pin.addEventListener('click',openPanel);
+  const mount=()=>{const prog=q('#regProgress');if(!prog||!prog.parentNode)return setTimeout(mount,200);prog.parentNode.insertBefore(pin,prog);badge()};
+  mount();
 
   /* ---------- panel de captura ---------- */
   function modal(html){
