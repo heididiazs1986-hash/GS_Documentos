@@ -1805,6 +1805,7 @@
       "text_2tgsw":"ar_localidad_pdf",
       "text_3kjbx":"ar_alcaldia_pdf",
       "text_4mqvb":"_direccion_sola",
+      "text_5yied":"ar_sector_pdf",
       "text_6prgm":"cm_nombre",
       "text_7jdiv":"cm_num_doc",
       "text_8ptdj":"cm_fecha_dia",
