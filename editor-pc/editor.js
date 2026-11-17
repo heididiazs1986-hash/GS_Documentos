@@ -295,13 +295,14 @@ renderActiveFields=function(scroll){
  if(scroll)els.fields.scrollIntoView({behavior:'smooth',block:'start'});
 };
 
+const isSupport=p=>/^SOPORTES?[\/_]/i.test(p);
 async function openZip(file){
  try{
    els.status.textContent='Leyendo paquete…'; S.sourceFile=file;S.zip=await JSZip.loadAsync(file);S.entries.clear();S.docs.clear();S.manifest=null;
    const jobs=[];
    S.zip.forEach((path,entry)=>{if(!entry.dir)jobs.push((async()=>{
      const bytes=await entry.async('uint8array');S.entries.set(path,bytes);
-     if(path.toUpperCase().endsWith('.PDF') && !path.toUpperCase().startsWith('SOPORTES/')){
+     if(path.toUpperCase().endsWith('.PDF') && !isSupport(path)){
        const doc=await loadPdf(path,bytes); if(!S.docs.has(doc.type))S.docs.set(doc.type,doc);
      }
      if(path.toUpperCase().endsWith('GS_REGISTRO.JSON')){
@@ -318,7 +319,7 @@ async function openZip(file){
    }
    deriveMaster();S.active=null;
    renderMaster();renderTabs();renderActiveFields(false);
-   const supports=[...S.entries.keys()].filter(p=>p.toUpperCase().startsWith('SOPORTES/')&&!p.endsWith('/')).length;
+   const supports=[...S.entries.keys()].filter(p=>isSupport(p)&&!p.endsWith('/')).length;
    els.summary.textContent='E6 y DJ · '+supports+' soportes';
    els.packageTitle.textContent='Campos específicos · E6 y DJ';
    els.legacy.textContent=S.manifest?'ZIP con ficha maestra':'ZIP legado · reconstruido desde PDF';
@@ -340,7 +341,7 @@ async function saveZip(){
    els.save.disabled=true;els.save.textContent='Generando…';Object.keys(S.master).forEach(applyMaster);
    const out=new JSZip();
    for(const [path,bytes] of S.entries){
-     if(path.toUpperCase().endsWith('.PDF') && !path.toUpperCase().startsWith('SOPORTES/')){
+     if(path.toUpperCase().endsWith('.PDF') && !isSupport(path)){
        const type=docType(path), model=S.docs.get(type);
        if(model){
          const pdf=await PDFDocument.load(model.original,{ignoreEncryption:true,updateMetadata:false});

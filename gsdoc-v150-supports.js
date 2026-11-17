@@ -161,7 +161,7 @@
       '<header><h3>Documento escaneado</h3><p data-role="pagesinfo"></p></header>'+
       '<div class="gs150-body"><div class="gs150-thumbs" data-role="thumbs"></div>'+
         '<label class="gs150-field">Nombre del archivo<input type="text" data-role="filename" maxlength="80" autocomplete="off" autocapitalize="characters" placeholder="Ej. CEDULA_USUARIO"></label>'+
-        '<p class="gs150-note">Se guardará como un solo PDF dentro de la carpeta SOPORTES del paquete.</p></div>'+
+        '<p class="gs150-note">Se guardará como un solo PDF en el paquete, con el prefijo SOPORTE_.</p></div>'+
       '<footer><button type="button" class="gs150-btn" data-act="more">＋ Otra hoja</button><button type="button" class="gs150-btn gs150-main" data-act="save">Guardar PDF ✓</button></footer>'+
       '<button type="button" class="gs150-discard" data-act="discard">Descartar todo</button>'+
     '</section>'+

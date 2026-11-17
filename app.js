@@ -2261,9 +2261,8 @@
       }
       GSPROG.set(72,'Agregando materiales y soportes…');
       if(state.supports?.length){
-        const folder=zip.folder('SOPORTES');
         for(const f of state.supports){
-          try{folder.file(f.name,await f.arrayBuffer())}catch(e){errors.push('Soporte '+f.name+': '+(e?.message||e))}
+          try{zip.file('SOPORTE_'+String(f.name).replace(/^SOPORTE_/i,''),await f.arrayBuffer())}catch(e){errors.push('Soporte '+f.name+': '+(e?.message||e))}
         }
         generated.push('SOPORTES ('+state.supports.length+')');
       }
